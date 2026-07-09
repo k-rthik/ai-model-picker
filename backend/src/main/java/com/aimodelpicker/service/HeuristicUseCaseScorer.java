@@ -1,7 +1,9 @@
 package com.aimodelpicker.service;
 
 import com.aimodelpicker.model.AiModel;
+import com.aimodelpicker.model.ArenaScore;
 import com.aimodelpicker.model.UseCaseScore;
+import com.aimodelpicker.repository.ArenaScoreRepository;
 import com.aimodelpicker.repository.ModelRepository;
 import com.aimodelpicker.repository.UseCaseScoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -288,15 +291,30 @@ public class HeuristicUseCaseScorer {
                     + "|weaver|hanami|goliath|dolphin|venice|remm-slerp|mytho", 5.0, ROLEPLAY)
     );
 
+    // How much a live Arena ELO (normalized to 0–10) counts vs. the curated tier
+    private static final double ARENA_BLEND = 0.5;
+
     private final ModelRepository modelRepository;
     private final UseCaseScoreRepository useCaseScoreRepository;
+    private final ArenaScoreRepository arenaScoreRepository;
 
-    /** Recomputes heuristic scores for all active models. Returns rows written. */
+    /**
+     * Recomputes scores for all active models: curated family tier, blended
+     * 50/50 with live LMArena ELO where one exists, then metadata gates.
+     * Returns rows written.
+     */
     public Mono<Integer> recomputeAll() {
         String computedAt = LocalDateTime.now().toString();
         return modelRepository.findAll()
                 .collectList()
-                .flatMap(models -> {
+                .zipWith(arenaScoreRepository.findLatestPerModel().collectList())
+                .flatMap(tuple -> {
+                    List<AiModel> models = tuple.getT1();
+                    Map<String, Double> arena10 = normalizeElo(tuple.getT2());
+                    if (!arena10.isEmpty()) {
+                        log.info("Blending {} LMArena ELO scores into use-case ratings", arena10.size());
+                    }
+
                     List<UseCaseScore> scores = new ArrayList<>();
                     for (AiModel model : models) {
                         if (isNonAssistant(model)) continue;
@@ -304,7 +322,7 @@ public class HeuristicUseCaseScorer {
                             UseCaseScore ucs = new UseCaseScore();
                             ucs.setModelId(model.getId());
                             ucs.setUseCase(useCase);
-                            ucs.setScore(score(model, useCase));
+                            ucs.setScore(score(model, useCase, arena10.get(model.getId())));
                             ucs.setComputedAt(computedAt);
                             scores.add(ucs);
                         }
@@ -316,6 +334,22 @@ public class HeuristicUseCaseScorer {
                 });
     }
 
+    /** Maps the scraped ELO range linearly onto 2–10 (worst matched model → 2, best → 10). */
+    static Map<String, Double> normalizeElo(List<ArenaScore> arenaScores) {
+        Map<String, Double> out = new HashMap<>();
+        if (arenaScores.size() < 5) return out;   // too few points to define a scale
+        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+        for (ArenaScore s : arenaScores) {
+            min = Math.min(min, s.getEloScore());
+            max = Math.max(max, s.getEloScore());
+        }
+        if (max <= min) return out;
+        for (ArenaScore s : arenaScores) {
+            out.put(s.getModelId(), 2.0 + 8.0 * (s.getEloScore() - min) / (max - min));
+        }
+        return out;
+    }
+
     public static boolean isNonAssistant(AiModel model) {
         if (Boolean.TRUE.equals(caps(model).get("embeddings"))) return true;
         return NON_ASSISTANT.matcher(model.getId().toLowerCase()).find();
@@ -323,6 +357,11 @@ public class HeuristicUseCaseScorer {
 
     /** Score 0–10 for one model and use case: family base + specialty delta + metadata gates. */
     public static double score(AiModel model, String useCase) {
+        return score(model, useCase, null);
+    }
+
+    /** As above, with the curated base blended against a live Arena ELO (0–10) when present. */
+    public static double score(AiModel model, String useCase, Double arena10) {
         String id = model.getId().toLowerCase();
         double base = DEFAULT_BASE;
         Map<String, Double> deltas = Map.of();
@@ -332,6 +371,10 @@ public class HeuristicUseCaseScorer {
                 deltas = f.deltas();
                 break;
             }
+        }
+        // Real-world ELO corrects the curated tier; gates below still apply
+        if (arena10 != null) {
+            base = base * (1 - ARENA_BLEND) + arena10 * ARENA_BLEND;
         }
         double score = base + deltas.getOrDefault(useCase, 0.0);
         score = applyMetadataGates(model, useCase, score);

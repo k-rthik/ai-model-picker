@@ -6,8 +6,6 @@ import com.aimodelpicker.model.BenchmarkScore;
 import com.aimodelpicker.model.ScrapeLog;
 import com.aimodelpicker.model.UseCaseScore;
 import com.aimodelpicker.repository.*;
-import com.aimodelpicker.scraper.ArtificialAnalysisScraper;
-import com.aimodelpicker.scraper.HuggingFaceScraper;
 import com.aimodelpicker.scraper.LmsysArenaScraper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,9 +42,7 @@ public class ScraperOrchestrator {
 
     private final IngestionOrchestrator ingestionOrchestrator;
     private final HeuristicUseCaseScorer heuristicScorer;
-    private final HuggingFaceScraper hfScraper;
     private final LmsysArenaScraper lmsysScraper;
-    private final ArtificialAnalysisScraper aaScraper;
 
     private final BenchmarkScoreRepository benchmarkRepo;
     private final ArenaScoreRepository arenaRepo;
@@ -68,23 +64,10 @@ public class ScraperOrchestrator {
     }
 
     public Mono<Void> runAllScrapers() {
-        return Mono.when(
-                runHuggingFaceScrape(),
-                runLmsysScrape(),
-                runAaScrape()
-        )
-                // Heuristic baseline first, then benchmark-derived scores overwrite
-                // it for whichever models actually have benchmark data.
+        // Arena ELO first; the scorer then blends it into the heuristic baseline.
+        return runLmsysScrape()
                 .then(heuristicScorer.recomputeAll())
-                .then(recomputeUseCaseScores());
-    }
-
-    private Mono<Void> runHuggingFaceScrape() {
-        return hfScraper.scrape()
-                .collectList()
-                .flatMap(scores -> upsertBenchmarkScores(scores)
-                        .then(logScrape("huggingface", "success", scores.size(), null)))
-                .onErrorResume(e -> logScrape("huggingface", "error", 0, e.getMessage()))
+                .then(recomputeUseCaseScores())
                 .then();
     }
 
@@ -92,23 +75,8 @@ public class ScraperOrchestrator {
         return lmsysScraper.scrape()
                 .collectList()
                 .flatMap(scores -> insertArenaScores(scores)
-                        .then(logScrape("lmsys", "success", scores.size(), null)))
-                .onErrorResume(e -> logScrape("lmsys", "error", 0, e.getMessage()))
-                .then();
-    }
-
-    private Mono<Void> runAaScrape() {
-        return aaScraper.scrape()
-                .collectList()
-                .flatMap(scores -> upsertBenchmarkScores(scores)
-                        .then(logScrape("artificialanalysis", "success", scores.size(), null)))
-                .onErrorResume(e -> logScrape("artificialanalysis", "error", 0, e.getMessage()))
-                .then();
-    }
-
-    private Mono<Void> upsertBenchmarkScores(List<BenchmarkScore> scores) {
-        return Flux.fromIterable(scores)
-                .concatMap(benchmarkRepo::upsert)
+                        .then(logScrape("lmarena", "success", scores.size(), null)))
+                .onErrorResume(e -> logScrape("lmarena", "error", 0, e.getMessage()))
                 .then();
     }
 

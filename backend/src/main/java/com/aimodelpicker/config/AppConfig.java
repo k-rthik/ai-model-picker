@@ -43,6 +43,8 @@ public class AppConfig {
     @Bean
     public WebClient webClient() {
         return WebClient.builder()
+                .clientConnector(new org.springframework.http.client.reactive.ReactorClientHttpConnector(
+                        reactor.netty.http.client.HttpClient.create().followRedirect(true)))
                 .codecs(c -> c.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
                 .build();
     }

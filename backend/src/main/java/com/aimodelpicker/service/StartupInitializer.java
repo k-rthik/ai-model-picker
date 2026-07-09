@@ -22,6 +22,7 @@ public class StartupInitializer {
     private final ModelRepository modelRepository;
     private final IngestionOrchestrator ingestionOrchestrator;
     private final HeuristicUseCaseScorer heuristicScorer;
+    private final ScraperOrchestrator scraperOrchestrator;
 
     @EventListener(ApplicationReadyEvent.class)
     public void onStartup() {
@@ -40,8 +41,13 @@ public class StartupInitializer {
                             .then();
                 })
                 .then(heuristicScorer.recomputeAll())
+                .doOnNext(rows -> log.info("Startup: heuristic use-case scores computed: {} rows", rows))
+                // Arena data lives on an ephemeral disk in prod — refresh it every
+                // boot, then scores recompute with the ELO blend.
+                .then(scraperOrchestrator.runAllScrapers())
                 .subscribe(
-                        rows -> log.info("Startup: heuristic use-case scores computed: {} rows", rows),
-                        e -> log.error("Startup initialization failed: {}", e.getMessage()));
+                        v -> {},
+                        e -> log.error("Startup initialization failed: {}", e.getMessage()),
+                        () -> log.info("Startup: catalog, scores, and arena blend ready"));
     }
 }

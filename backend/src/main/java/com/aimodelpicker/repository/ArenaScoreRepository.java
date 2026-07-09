@@ -41,6 +41,17 @@ public class ArenaScoreRepository {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
+    /** Latest ELO per model (max scraped_at row wins). */
+    public Flux<ArenaScore> findLatestPerModel() {
+        return Mono.fromCallable(() -> jdbc.query("""
+                        SELECT a.* FROM arena_scores a
+                        JOIN (SELECT model_id, MAX(scraped_at) AS ts FROM arena_scores GROUP BY model_id) l
+                          ON a.model_id = l.model_id AND a.scraped_at = l.ts
+                        """, ROW_MAPPER))
+                .flatMapMany(Flux::fromIterable)
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
     public Mono<Integer> insert(ArenaScore score) {
         return Mono.fromCallable(() -> jdbc.update(
                         "INSERT INTO arena_scores (model_id, model_name_on_leaderboard, elo_score, rank_position, votes, scraped_at) VALUES (?, ?, ?, ?, ?, ?)",
