@@ -19,3 +19,20 @@ body {
     linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
 }
+
+/* Lab-notebook entrance: content rises into place like a fresh readout */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.anim-rise   { animation: rise 0.3s ease-out both; }
+.anim-rise-1 { animation: rise 0.3s ease-out 0.05s both; }
+.anim-rise-2 { animation: rise 0.3s ease-out 0.10s both; }
+.anim-rise-3 { animation: rise 0.3s ease-out 0.15s both; }
+
+/* Gentle instrument-sweep for loading states */
+@keyframes sway {
+  0%, 100% { transform: rotate(-8deg); }
+  50%      { transform: rotate(8deg); }
+}
+.anim-sway { animation: sway 1.6s ease-in-out infinite; transform-origin: 50% 80%; display: inline-block; }

@@ -66,9 +66,9 @@ export default function Home() {
   }, [])
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'recommend', label: 'Recommend', icon: '🎯' },
-    { id: 'compare',   label: 'Compare',   icon: '📊' },
-    { id: 'cost',      label: 'Cost Calc', icon: '💰' },
+    { id: 'recommend', label: 'Recommend', icon: '🧪' },
+    { id: 'compare',   label: 'Compare',   icon: '🔬' },
+    { id: 'cost',      label: 'Cost Calc', icon: '🧮' },
   ]
 
   return (
@@ -78,7 +78,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity" title="Home">
-              <span className="text-2xl">🤖</span>
+              <span className="text-2xl">🧬</span>
               <div>
                 <div className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">AI Model Picker</div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">Benchmarks · Cost · Recommendations</div>
@@ -130,8 +130,8 @@ export default function Home() {
         {loading && (
           <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
             <div className="text-center space-y-2">
-              <div className="text-3xl animate-spin">⚙️</div>
-              <div>Loading model data...</div>
+              <div className="text-3xl anim-sway">🧪</div>
+              <div className="font-mono text-xs uppercase tracking-[0.25em]">Preparing the lab…</div>
             </div>
           </div>
         )}
@@ -163,7 +163,7 @@ export default function Home() {
         )}
 
         {!loading && !error && (
-          <div>
+          <div key={tab} className="anim-rise">
             {tab === 'compare'   && <ModelCompareTable models={models} />}
             {tab === 'cost'      && <CostCalculator />}
             {tab === 'recommend' && <RecommendationWizard />}

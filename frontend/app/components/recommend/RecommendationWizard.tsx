@@ -9,11 +9,11 @@ import { BetterAlternativeBanner } from '../alerts/BetterAlternativeBanner'
 import { ScoreMethodology } from '../shared/ScoreMethodology'
 
 /** Lab-notebook section tile: index label + accent top border. */
-function LabTile({ code, title, hint, children }: {
-  code: string; title: string; hint?: string; children: React.ReactNode
+function LabTile({ code, title, hint, children, className = '' }: {
+  code: string; title: string; hint?: string; children: React.ReactNode; className?: string
 }) {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 border-t-2 border-t-blue-500/70 p-6 shadow-sm">
+    <div className={`bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 border-t-2 border-t-blue-500/70 p-6 shadow-sm hover:shadow-md transition-shadow ${className}`}>
       <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-1.5">
         {code}
       </div>
@@ -131,7 +131,7 @@ export function RecommendationWizard() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Step indicator */}
       <div className="flex items-center gap-2">
         {['Use Case', 'Quality', 'Budget', 'Result'].map((label, i) => (
@@ -157,9 +157,10 @@ export function RecommendationWizard() {
 
       {/* Step 0: Describe it, pick a persona, or choose manually */}
       {step === 0 && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Natural language input */}
-          <LabTile code="Method 01 · Free text" title="Describe what you're building">
+          <LabTile code="Method 01 · Free text" title="Describe what you're building"
+                   className="lg:col-span-2 anim-rise">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -190,7 +191,8 @@ export function RecommendationWizard() {
 
           {/* Profession */}
           <LabTile code="Method 02 · By profession" title="Or pick your profession"
-                   hint="Presets a typical task, quality bar, and — for regulated professions — compliance-grade providers.">
+                   hint="Presets a typical task, quality bar, and — for regulated professions — compliance-grade providers."
+                   className="anim-rise-1">
             <select
               value={profession}
               disabled={isPending}
@@ -206,8 +208,9 @@ export function RecommendationWizard() {
 
           {/* Personas */}
           <LabTile code="Method 03 · By persona" title="Or pick a preset persona"
-                   hint={persona ? 'Now choose your use case in Method 04 below — quality and budget are preset.' : 'Presets answer the quality and budget questions for you.'}>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                   hint={persona ? 'Now choose your use case in Method 04 below — quality and budget are preset.' : 'Presets answer the quality and budget questions for you.'}
+                   className="anim-rise-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {PERSONAS.map(p => (
                 <button
                   key={p.id}
@@ -227,8 +230,9 @@ export function RecommendationWizard() {
 
           <LabTile code="Method 04 · Manual selection"
                    title={persona ? 'What are you building?' : 'Or choose your use case manually'}
-                   hint={persona ? `Persona locked in: ${PERSONAS.find(x => x.id === persona)?.label}. Pick a use case to get the result.` : 'Walks you through quality and budget in two quick steps.'}>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                   hint={persona ? `Persona locked in: ${PERSONAS.find(x => x.id === persona)?.label}. Pick a use case to get the result.` : 'Walks you through quality and budget in two quick steps.'}
+                   className="lg:col-span-2 anim-rise-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
               {USE_CASES.map(uc => (
                 <button
                   key={uc.id}
@@ -254,7 +258,7 @@ export function RecommendationWizard() {
 
       {/* Step 1: Quality */}
       {step === 1 && (
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm space-y-4">
+        <div className="max-w-2xl mx-auto anim-rise bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 border-t-2 border-t-blue-500/70 p-6 shadow-sm space-y-4">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">How important is quality?</h3>
           <div className="space-y-3">
             {[
@@ -287,7 +291,7 @@ export function RecommendationWizard() {
 
       {/* Step 2: Budget */}
       {step === 2 && (
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm space-y-5">
+        <div className="max-w-2xl mx-auto anim-rise bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 border-t-2 border-t-blue-500/70 p-6 shadow-sm space-y-5">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">Max input cost per 1M tokens?</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">Set 0 for no budget constraint.</p>
 
@@ -323,7 +327,7 @@ export function RecommendationWizard() {
 
       {/* Step 3: Result */}
       {step === 3 && result && result.topPick && (
-        <div className="space-y-4">
+        <div className="space-y-4 anim-rise">
           {interpretation && (
             <div className="bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800 rounded-lg px-4 py-2.5 text-xs text-indigo-700 dark:text-indigo-300">
               🧠 {interpretation}
@@ -368,20 +372,24 @@ export function RecommendationWizard() {
             </div>
           </div>
 
-          {result.runnerUp && (
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Runner Up</div>
-              <div className="flex items-center justify-between">
-                <div className="font-semibold text-gray-800 dark:text-gray-100">{result.runnerUp.name}</div>
-                <ProviderBadge provider={result.runnerUp.providerId} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+            {result.runnerUp && (
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm anim-rise-1">
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Runner Up</div>
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold text-gray-800 dark:text-gray-100">{result.runnerUp.name}</div>
+                  <ProviderBadge provider={result.runnerUp.providerId} />
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  ${result.runnerUp.inputPricePer1m}/1M input · {result.runnerUp.speedTier} speed
+                </div>
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                ${result.runnerUp.inputPricePer1m}/1M input · {result.runnerUp.speedTier} speed
-              </div>
-            </div>
-          )}
+            )}
 
-          <ScoreMethodology />
+            <div className={`anim-rise-2 ${result.runnerUp ? '' : 'lg:col-span-2'}`}>
+              <ScoreMethodology />
+            </div>
+          </div>
 
           <button
             onClick={reset}
