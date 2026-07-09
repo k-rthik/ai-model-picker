@@ -2,8 +2,21 @@ import type { AiModel, Provider } from '../types/models'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
 
+const ADMIN_KEY_STORAGE = 'adminKey'
+
+export const getAdminKey = (): string =>
+  typeof window !== 'undefined' ? localStorage.getItem(ADMIN_KEY_STORAGE) ?? '' : ''
+
+export const setAdminKey = (key: string) => localStorage.setItem(ADMIN_KEY_STORAGE, key)
+export const clearAdminKey = () => localStorage.removeItem(ADMIN_KEY_STORAGE)
+
+export function adminHeaders(): Record<string, string> {
+  const key = getAdminKey()
+  return key ? { 'X-Admin-Key': key } : {}
+}
+
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`)
+  const res = await fetch(`${BASE}${path}`, { headers: adminHeaders() })
   if (!res.ok) throw new Error(`${res.status} ${path}`)
   return res.json()
 }
@@ -11,7 +24,7 @@ async function get<T>(path: string): Promise<T> {
 async function post<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
-    headers: body ? { 'Content-Type': 'application/json' } : {},
+    headers: { ...adminHeaders(), ...(body ? { 'Content-Type': 'application/json' } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   })
   if (!res.ok) throw new Error(`${res.status} ${path}`)
@@ -21,7 +34,7 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
 }
 
 async function del(path: string): Promise<string> {
-  const res = await fetch(`${BASE}${path}`, { method: 'DELETE' })
+  const res = await fetch(`${BASE}${path}`, { method: 'DELETE', headers: adminHeaders() })
   if (!res.ok) throw new Error(`${res.status} ${path}`)
   return res.text()
 }

@@ -5,7 +5,8 @@ import type { IngestionLogEntry, ScrapeLogEntry } from '../lib/adminApi'
 import {
   runIngest, runIngestSource, runScrape, runRecompute,
   fetchIngestionLogs, fetchScrapeLogs, fetchAllModels,
-  deactivateModel, activateModel, fetchAdminProviders
+  deactivateModel, activateModel, fetchAdminProviders,
+  getAdminKey, setAdminKey, clearAdminKey
 } from '../lib/adminApi'
 
 type AdminTab = 'ingest' | 'models' | 'providers' | 'logs'
@@ -14,7 +15,31 @@ export default function AdminPage() {
   const [tab, setTab] = useState<AdminTab>('ingest')
   const [authed, setAuthed] = useState(false)
   const [pin, setPin] = useState('')
-  const PIN = '1337' // simple local guard — not production auth
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [checking, setChecking] = useState(false)
+
+  // Validate the key against a real admin endpoint (401 = wrong key)
+  const tryAuth = async (key: string) => {
+    setChecking(true)
+    setAuthError(null)
+    setAdminKey(key)
+    try {
+      await fetchIngestionLogs()
+      setAuthed(true)
+    } catch {
+      clearAdminKey()
+      setAuthError('Invalid admin key')
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  // Auto-login with a previously stored key
+  useEffect(() => {
+    const stored = getAdminKey()
+    if (stored) void tryAuth(stored)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!authed) {
     return (
@@ -27,19 +52,20 @@ export default function AdminPage() {
           </div>
           <input
             type="password"
-            placeholder="PIN"
+            placeholder="Admin API key"
             value={pin}
             onChange={e => setPin(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && pin === PIN && setAuthed(true)}
+            onKeyDown={e => e.key === 'Enter' && pin && void tryAuth(pin)}
             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-100 text-center text-xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
-            onClick={() => pin === PIN && setAuthed(true)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 font-semibold transition-colors"
+            onClick={() => pin && void tryAuth(pin)}
+            disabled={checking}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg py-2 font-semibold transition-colors"
           >
-            Enter
+            {checking ? 'Checking…' : 'Enter'}
           </button>
-          {pin && pin !== PIN && <p className="text-red-400 text-xs text-center">Wrong PIN</p>}
+          {authError && <p className="text-red-400 text-xs text-center">{authError}</p>}
         </div>
       </div>
     )

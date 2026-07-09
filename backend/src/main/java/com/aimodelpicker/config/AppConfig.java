@@ -24,6 +24,7 @@ public class AppConfig {
      * Set via ALLOWED_ORIGINS env var when hosting the frontend elsewhere.
      */
     @Bean
+    @org.springframework.core.annotation.Order(-100)  // before AdminAuthFilter (-50)
     public CorsWebFilter corsWebFilter(
             @Value("${app.cors.allowed-origins:http://localhost:3000}") String allowedOrigins) {
         CorsConfiguration config = new CorsConfiguration();

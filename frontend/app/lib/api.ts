@@ -34,5 +34,6 @@ export const fetchCostProjections = (inputTokens: number, outputTokens: number) 
   get<CostProjection[]>(`/recommend/cost?inputTokens=${inputTokens}&outputTokens=${outputTokens}`)
 
 // Admin
-export const triggerScrape    = () => fetch(`${BASE}/admin/scrape`,    { method: 'POST' }).then(r => r.text())
-export const triggerRecompute = () => fetch(`${BASE}/admin/recompute`, { method: 'POST' }).then(r => r.text())
+import { adminHeaders } from './adminApi'
+export const triggerScrape    = () => fetch(`${BASE}/admin/scrape`,    { method: 'POST', headers: adminHeaders() }).then(r => r.text())
+export const triggerRecompute = () => fetch(`${BASE}/admin/recompute`, { method: 'POST', headers: adminHeaders() }).then(r => r.text())

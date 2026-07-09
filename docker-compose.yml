@@ -9,6 +9,9 @@ services:
     volumes:
       # Persists the SQLite catalog + scores; seeds from the local dev DB if present
       - ./backend/data:/app/data
+    environment:
+      # Unset = admin endpoints open (local dev). Set to lock /api/admin/**.
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-}
     restart: unless-stopped
 
   frontend:
