@@ -7,23 +7,7 @@ import { ProviderBadge } from '../shared/ProviderBadge'
 import { SpeedBadge } from '../shared/SpeedBadge'
 import { BetterAlternativeBanner } from '../alerts/BetterAlternativeBanner'
 import { ScoreMethodology } from '../shared/ScoreMethodology'
-
-/** Lab-notebook section tile: index label + accent top border. */
-function LabTile({ code, title, hint, children, className = '' }: {
-  code: string; title: string; hint?: string; children: React.ReactNode; className?: string
-}) {
-  return (
-    <div className={`bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 border-t-2 border-t-blue-500/70 p-6 shadow-sm hover:shadow-md transition-shadow ${className}`}>
-      <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-1.5">
-        {code}
-      </div>
-      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{title}</h3>
-      {hint && <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{hint}</p>}
-      {!hint && <div className="mb-3" />}
-      {children}
-    </div>
-  )
-}
+import { LabTile } from '../shared/LabTile'
 
 export function RecommendationWizard() {
   const [step,      setStep]      = useState(0)

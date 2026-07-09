@@ -6,6 +6,7 @@ import { fetchUseCaseLeaderboard } from '../../lib/api'
 import { ProviderBadge } from '../shared/ProviderBadge'
 import { SpeedBadge } from '../shared/SpeedBadge'
 import { ScoreMethodology } from '../shared/ScoreMethodology'
+import { LabTile } from '../shared/LabTile'
 
 type SortKey = 'name' | 'inputPricePer1m' | 'outputPricePer1m' | 'contextWindow' | 'speedTier' | 'score'
 
@@ -101,9 +102,10 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
   )
 
   return (
-    <div>
+    <div className="space-y-4">
       {/* Filters */}
-      <div className="flex gap-3 mb-4 flex-wrap items-center">
+      <LabTile code="Compare 01 · Filters" title="Narrow the field" className="anim-rise">
+      <div className="flex gap-3 flex-wrap items-center">
         <input
           type="search"
           placeholder="🔍 Filter models… (name, provider, notes)"
@@ -146,11 +148,13 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
           {sorted.length} of {models.length} models
         </span>
       </div>
+      </LabTile>
 
-      {scores && <div className="mb-4"><ScoreMethodology /></div>}
+      {scores && <ScoreMethodology />}
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+      <LabTile flush code="Compare 02 · Specimen table" title="Model catalog" className="anim-rise-1">
+      <div className="overflow-x-auto border-t border-gray-100 dark:border-gray-800">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
@@ -214,7 +218,7 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
 
       {/* Pagination */}
       {pageCount > 1 && (
-        <div className="flex items-center justify-between mt-4 text-sm">
+        <div className="flex items-center justify-between px-6 py-4 text-sm bg-gray-50 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
           <button
             onClick={() => setPage(p => Math.max(0, p - 1))}
             disabled={safePage === 0}
@@ -235,6 +239,7 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
           </button>
         </div>
       )}
+      </LabTile>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { useState, useTransition } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts'
 import type { CostProjection } from '../../types/models'
 import { fetchCostProjections } from '../../lib/api'
+import { LabTile } from '../shared/LabTile'
 
 const CHART_TOP_N = 15
 const PAGE_SIZE = 25
@@ -60,8 +61,7 @@ export function CostCalculator() {
   return (
     <div className="space-y-6">
       {/* Inputs */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Token Inputs</h3>
+      <LabTile code="Cost 01 · Parameters" title="Token inputs" className="anim-rise">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <label className="space-y-1">
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Input tokens</span>
@@ -115,7 +115,7 @@ export function CostCalculator() {
             {isPending ? 'Calculating...' : 'Calculate'}
           </button>
         </div>
-      </div>
+      </LabTile>
 
       {error && (
         <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4 text-sm text-red-700 dark:text-red-400">{error}</div>
@@ -124,14 +124,10 @@ export function CostCalculator() {
       {projections.length > 0 && (
         <>
           {/* Chart: top-N cheapest paid models, horizontal so names stay readable */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-              {CHART_TOP_N} cheapest paid models {showBatch ? '(batch pricing where available)' : ''}
-            </h3>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
-              For {inputTokens.toLocaleString()} input + {outputTokens.toLocaleString()} output tokens
-              {freeCount > 0 && ` · ${freeCount} free/self-hosted models excluded (they cost $0)`}
-            </p>
+          <LabTile code="Cost 02 · Readout"
+                   title={`${CHART_TOP_N} cheapest paid models ${showBatch ? '(batch pricing where available)' : ''}`}
+                   hint={`For ${inputTokens.toLocaleString()} input + ${outputTokens.toLocaleString()} output tokens${freeCount > 0 ? ` · ${freeCount} free/self-hosted models excluded (they cost $0)` : ''}`}
+                   className="anim-rise-1">
             <ResponsiveContainer width="100%" height={CHART_TOP_N * 32 + 20}>
               <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 64, bottom: 0, left: 8 }}>
                 <XAxis type="number" hide />
@@ -166,10 +162,10 @@ export function CostCalculator() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </LabTile>
 
           {/* Table: top-N paid models */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+          <LabTile flush code="Cost 03 · Ledger" title="Cost per model, cheapest first" className="anim-rise-2">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
@@ -217,7 +213,7 @@ export function CostCalculator() {
                 Next →
               </button>
             </div>
-          </div>
+          </LabTile>
         </>
       )}
     </div>
