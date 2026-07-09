@@ -24,7 +24,8 @@ public final class NlQueryParser {
     private static final Map<String, Pattern> USE_CASE_KEYWORDS = new LinkedHashMap<>();
     static {
         USE_CASE_KEYWORDS.put("vision",        Pattern.compile("\\b(image|photo|picture|screenshot|diagram|video)s?\\b|\\b(vision|ocr|multimodal)\\b"));
-        USE_CASE_KEYWORDS.put("coding",        Pattern.compile("\\b(cod(e|ing|er)|program|debug|refactor|ide|copilot|sql|scripts?|api client|autocomplete)\\b"));
+        USE_CASE_KEYWORDS.put("coding",        Pattern.compile("\\b(cod(e|ing|er)|program|debug|refactor|ide|copilot|sql|scripts?|api client|autocomplete"
+                + "|build(ing)?[\\w '-]{0,30}\\b(apps?|site|website|tracker|tool|game|dashboard|extension|bot)|(mobile|web) app)\\b"));
         USE_CASE_KEYWORDS.put("agents",        Pattern.compile("\\b(agents?|automat(e|ion)|tool use|function call|workflows?|autonomous|browse|scrape)\\b"));
         USE_CASE_KEYWORDS.put("rag",           Pattern.compile("\\b(rag|retrieval|search|knowledge base|docs|documentation|q&a|question answer|support bots?|chatbots?|faqs?|grounded)\\b"));
         USE_CASE_KEYWORDS.put("summarization", Pattern.compile("\\b(summar(y|ies|ize|ise|ization)|tl;?dr|digest|condense|meeting notes|transcripts?)\\b"));

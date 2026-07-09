@@ -13,6 +13,13 @@ class NlQueryParserTest {
     }
 
     @Test
+    void buildingAnAppMeansCoding() {
+        assertEquals("coding", NlQueryParser.parse("building a mobile expense tracker").useCase());
+        assertEquals("coding", NlQueryParser.parse("I'm building an app for recipes").useCase());
+        assertEquals("coding", NlQueryParser.parse("build my web dashboard").useCase());
+    }
+
+    @Test
     void detectsRagWithChatbotKeywords() {
         var p = NlQueryParser.parse("customer support chatbot over our documentation");
         assertEquals("rag", p.useCase());

@@ -151,13 +151,40 @@ public class RecommendationEngine {
 
         AiModel topPick       = ranked.get(0).getKey();
         double  topScore      = ranked.get(0).getValue();
-        AiModel runnerUp      = ranked.size() > 1 ? ranked.get(1).getKey() : null;
-        double  runnerUpScore = ranked.size() > 1 ? ranked.get(1).getValue() : 0;
+
+        // Runner-up must be a genuine alternative, not a sibling variant of the
+        // top pick (e.g. "Grok 4.20" vs "Grok 4.20 Multi-Agent").
+        AiModel runnerUp      = null;
+        double  runnerUpScore = 0;
+        String topFamily = familyKey(topPick);
+        for (int i = 1; i < ranked.size(); i++) {
+            if (!familyKey(ranked.get(i).getKey()).equals(topFamily)) {
+                runnerUp = ranked.get(i).getKey();
+                runnerUpScore = ranked.get(i).getValue();
+                break;
+            }
+        }
+        if (runnerUp == null && ranked.size() > 1) {
+            runnerUp = ranked.get(1).getKey();
+            runnerUpScore = ranked.get(1).getValue();
+        }
 
         String reasoning = buildReasoning(topPick, useCase,
                 scoreMap.getOrDefault(topPick.getId(), 0.0), budgetRelaxed, qualityRelaxed, maxBudgetPer1M, persona);
 
         return new RecommendationResult(topPick, topScore, runnerUp, runnerUpScore, reasoning);
+    }
+
+    /**
+     * Model family = first two id tokens after the provider prefix
+     * ("x-ai-grok-4-20" → "grok-4"), so version/variant siblings group together.
+     */
+    static String familyKey(AiModel model) {
+        String id = model.getId();
+        String provider = model.getProviderId() == null ? "" : model.getProviderId();
+        String bare = id.startsWith(provider + "-") ? id.substring(provider.length() + 1) : id;
+        String[] tokens = bare.split("-");
+        return provider + ":" + tokens[0] + (tokens.length > 1 ? "-" + tokens[1] : "");
     }
 
     /** Blended $/1M tokens assuming a 3:1 input:output mix. */
