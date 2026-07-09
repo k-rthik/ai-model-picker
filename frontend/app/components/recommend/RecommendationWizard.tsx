@@ -103,6 +103,15 @@ export function RecommendationWizard() {
             {i < 3 && <div className={`flex-1 h-0.5 w-8 ${i < step ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}`} />}
           </div>
         ))}
+        {step > 0 && (
+          <button
+            onClick={reset}
+            className="ml-auto flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 transition-colors"
+            title="Start over"
+          >
+            🏠 Start Over
+          </button>
+        )}
       </div>
 
       {/* Step 0: Describe it, pick a persona, or choose manually */}
