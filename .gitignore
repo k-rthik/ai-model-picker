@@ -19,3 +19,5 @@ frontend/out/
 ### Claude Code local settings ###
 .claude/settings.local.json
 frontend/*.tsbuildinfo
+.vercel
+.env*
