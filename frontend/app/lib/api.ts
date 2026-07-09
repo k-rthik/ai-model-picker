@@ -1,6 +1,6 @@
 import type {
   AiModel, BenchmarkScore, ArenaScore, UseCaseScore,
-  CostProjection, RecommendationResult, AlternativeAlert, UseCase
+  CostProjection, RecommendationResult, AlternativeAlert, UseCase, NlRecommendation
 } from '../types/models'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
@@ -23,8 +23,12 @@ export const fetchArenaLeaderboard = ()              => get<ArenaScore[]>('/mode
 export const fetchUseCaseLeaderboard = (uc: UseCase) => get<UseCaseScore[]>(`/models/leaderboard/use-case/${uc}`)
 
 // Recommendation
-export const fetchRecommendation = (useCase: UseCase, quality: number, maxBudget: number) =>
-  get<RecommendationResult>(`/recommend?useCase=${useCase}&quality=${quality}&maxBudget=${maxBudget}`)
+export const fetchRecommendation = (useCase: UseCase, quality: number, maxBudget: number, persona?: string) =>
+  get<RecommendationResult>(
+    `/recommend?useCase=${useCase}&quality=${quality}&maxBudget=${maxBudget}${persona ? `&persona=${persona}` : ''}`)
+
+export const fetchNlRecommendation = (q: string) =>
+  get<NlRecommendation>(`/recommend/nl?q=${encodeURIComponent(q)}`)
 
 export const fetchAlternative = (modelId: string, useCase: UseCase) =>
   get<{ present: boolean; value?: AlternativeAlert }>(`/recommend/alternative?modelId=${modelId}&useCase=${useCase}`)

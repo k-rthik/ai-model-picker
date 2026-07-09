@@ -1,8 +1,8 @@
 'use client'
 import { useState, useTransition } from 'react'
 import type { RecommendationResult, AlternativeAlert, UseCase } from '../../types/models'
-import { USE_CASES } from '../../types/models'
-import { fetchRecommendation, fetchAlternative } from '../../lib/api'
+import { USE_CASES, PERSONAS } from '../../types/models'
+import { fetchRecommendation, fetchNlRecommendation, fetchAlternative } from '../../lib/api'
 import { ProviderBadge } from '../shared/ProviderBadge'
 import { SpeedBadge } from '../shared/SpeedBadge'
 import { BetterAlternativeBanner } from '../alerts/BetterAlternativeBanner'
@@ -12,10 +12,29 @@ export function RecommendationWizard() {
   const [useCase,   setUseCase]   = useState<UseCase | null>(null)
   const [quality,   setQuality]   = useState(3)
   const [maxBudget, setMaxBudget] = useState(0)
+  const [persona,   setPersona]   = useState<string | null>(null)
+  const [nlQuery,   setNlQuery]   = useState('')
+  const [interpretation, setInterpretation] = useState<string | null>(null)
   const [result,    setResult]    = useState<RecommendationResult | null>(null)
   const [alert,     setAlert]     = useState<AlternativeAlert | null>(null)
   const [error,     setError]     = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+
+  const finish = async (rec: RecommendationResult, uc: UseCase, note: string | null) => {
+    // Check whether a much cheaper model comes close to the actual top pick
+    let alt = null
+    if (rec.topPick) {
+      try {
+        alt = (await fetchAlternative(rec.topPick.id, uc))?.value ?? null
+      } catch {
+        alt = null
+      }
+    }
+    setResult(rec)
+    setAlert(alt)
+    setInterpretation(note)
+    setStep(3)
+  }
 
   const recommend = () => {
     if (!useCase) return
@@ -23,18 +42,42 @@ export function RecommendationWizard() {
     startTransition(async () => {
       try {
         const rec = await fetchRecommendation(useCase, quality, maxBudget)
-        // Check whether a much cheaper model comes close to the actual top pick
-        let alt = null
-        if (rec.topPick) {
-          try {
-            alt = (await fetchAlternative(rec.topPick.id, useCase))?.value ?? null
-          } catch {
-            alt = null
-          }
-        }
-        setResult(rec)
-        setAlert(alt)
-        setStep(3)
+        await finish(rec, useCase, null)
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : 'Failed to get recommendation')
+      }
+    })
+  }
+
+  // Persona flow: quality + budget come from the preset, so skip those steps
+  const recommendForPersona = (uc: UseCase, p: string) => {
+    setError(null)
+    setUseCase(uc)
+    startTransition(async () => {
+      try {
+        const rec = await fetchRecommendation(uc, 3, 0, p)
+        const label = PERSONAS.find(x => x.id === p)?.label ?? p
+        await finish(rec, uc, `${label} preset · ${USE_CASES.find(u => u.id === uc)?.label ?? uc}`)
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : 'Failed to get recommendation')
+      }
+    })
+  }
+
+  const recommendFromText = () => {
+    if (!nlQuery.trim()) return
+    setError(null)
+    startTransition(async () => {
+      try {
+        const nl = await fetchNlRecommendation(nlQuery.trim())
+        setUseCase(nl.useCase)
+        const parts = [
+          `use case: ${USE_CASES.find(u => u.id === nl.useCase)?.label ?? nl.useCase}`,
+          `quality ${nl.quality}/5`,
+          nl.maxBudget > 0 ? `budget $${nl.maxBudget}/1M` : null,
+          nl.personaLabel ? `${nl.personaLabel} preset` : null,
+        ].filter(Boolean)
+        await finish(nl.result, nl.useCase, `Understood — ${parts.join(' · ')}`)
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Failed to get recommendation')
       }
@@ -42,7 +85,8 @@ export function RecommendationWizard() {
   }
 
   const reset = () => {
-    setStep(0); setUseCase(null); setQuality(3); setMaxBudget(0); setResult(null); setAlert(null)
+    setStep(0); setUseCase(null); setQuality(3); setMaxBudget(0); setPersona(null)
+    setNlQuery(''); setInterpretation(null); setResult(null); setAlert(null)
   }
 
   return (
@@ -61,25 +105,77 @@ export function RecommendationWizard() {
         ))}
       </div>
 
-      {/* Step 0: Use case */}
+      {/* Step 0: Describe it, pick a persona, or choose manually */}
       {step === 0 && (
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">What are you building?</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {USE_CASES.map(uc => (
+        <div className="space-y-4">
+          {/* Natural language input */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Describe what you&apos;re building</h3>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder='e.g. "cheap chatbot over our docs for a weekend project"'
+                value={nlQuery}
+                onChange={e => setNlQuery(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && recommendFromText()}
+                className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
               <button
-                key={uc.id}
-                onClick={() => { setUseCase(uc.id); setStep(1) }}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all hover:border-blue-400 hover:shadow-sm
-                  ${useCase === uc.id
-                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
-                    : 'border-gray-200 dark:border-gray-700'}`}
+                onClick={recommendFromText}
+                disabled={isPending || !nlQuery.trim()}
+                className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors whitespace-nowrap"
               >
-                <span className="text-2xl">{uc.icon}</span>
-                <span className="text-xs font-semibold text-center text-gray-900 dark:text-gray-100">{uc.label}</span>
-                <span className="text-xs text-gray-400 dark:text-gray-500 text-center leading-tight">{uc.description}</span>
+                {isPending ? '…' : 'Recommend →'}
               </button>
-            ))}
+            </div>
+          </div>
+
+          {/* Personas */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Or pick a preset persona</h3>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+              {persona ? 'Now choose your use case below — quality and budget are preset.' : 'Presets answer the quality and budget questions for you.'}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+              {PERSONAS.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => setPersona(persona === p.id ? null : p.id)}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all hover:border-blue-400
+                    ${persona === p.id
+                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
+                      : 'border-gray-200 dark:border-gray-700'}`}
+                >
+                  <span className="text-xl">{p.icon}</span>
+                  <span className="text-xs font-semibold text-center text-gray-900 dark:text-gray-100">{p.label}</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500 text-center leading-tight">{p.description}</span>
+                </button>
+              ))}
+            </div>
+
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              {persona ? 'What are you building?' : 'Or choose your use case manually'}
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {USE_CASES.map(uc => (
+                <button
+                  key={uc.id}
+                  onClick={() => {
+                    if (persona) { recommendForPersona(uc.id, persona) }
+                    else { setUseCase(uc.id); setStep(1) }
+                  }}
+                  disabled={isPending}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all hover:border-blue-400 hover:shadow-sm disabled:opacity-50
+                    ${useCase === uc.id
+                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-950'
+                      : 'border-gray-200 dark:border-gray-700'}`}
+                >
+                  <span className="text-2xl">{uc.icon}</span>
+                  <span className="text-xs font-semibold text-center text-gray-900 dark:text-gray-100">{uc.label}</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500 text-center leading-tight">{uc.description}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -156,6 +252,11 @@ export function RecommendationWizard() {
       {/* Step 3: Result */}
       {step === 3 && result && result.topPick && (
         <div className="space-y-4">
+          {interpretation && (
+            <div className="bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800 rounded-lg px-4 py-2.5 text-xs text-indigo-700 dark:text-indigo-300">
+              🧠 {interpretation}
+            </div>
+          )}
           {alert && <BetterAlternativeBanner alert={alert} useCase={useCase!} />}
 
           <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-blue-600 p-6 shadow-md">

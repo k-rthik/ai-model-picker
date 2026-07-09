@@ -81,6 +81,23 @@ export interface AlternativeAlert {
   scoreDelta: number
 }
 
+export interface NlRecommendation {
+  useCase: UseCase
+  quality: number
+  maxBudget: number
+  persona: string | null
+  personaLabel: string | null
+  result: RecommendationResult
+}
+
+export const PERSONAS: { id: string; label: string; description: string; icon: string }[] = [
+  { id: 'SOLO_HACKER', label: 'Solo hacker',  description: 'Cheapest API that works',       icon: '👨‍💻' },
+  { id: 'STARTUP_MVP', label: 'Startup MVP',  description: 'Optimize for shipping speed',   icon: '🚀' },
+  { id: 'ENTERPRISE',  label: 'Enterprise',   description: 'Compliance and privacy',        icon: '🏢' },
+  { id: 'RESEARCHER',  label: 'Researcher',   description: 'Maximum reasoning power',       icon: '🔬' },
+  { id: 'STUDENT',     label: 'Student',      description: 'Free & open-source only',       icon: '🎓' },
+]
+
 export const USE_CASES: { id: UseCase; label: string; description: string; icon: string }[] = [
   { id: 'coding',       label: 'Coding',         description: 'Code generation, debugging, review',      icon: '💻' },
   { id: 'writing',      label: 'Writing',         description: 'Content, emails, documentation',          icon: '✍️' },

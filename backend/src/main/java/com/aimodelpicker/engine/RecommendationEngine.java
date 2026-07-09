@@ -61,17 +61,24 @@ public class RecommendationEngine {
     ) {}
 
     public Mono<RecommendationResult> recommend(String useCase, int qualityTier, double maxBudgetPer1M) {
-        int tier = Math.max(1, Math.min(qualityTier, 5));
+        return recommend(useCase, qualityTier, maxBudgetPer1M, null);
+    }
+
+    /** Persona overrides quality tier and budget weighting, and hard-filters candidates. */
+    public Mono<RecommendationResult> recommend(String useCase, int qualityTier,
+                                                double maxBudgetPer1M, Persona persona) {
+        int tier = persona != null ? persona.qualityTier : Math.max(1, Math.min(qualityTier, 5));
 
         return modelRepository.findAll()
                 .collectList()
                 .flatMap(models -> useCaseScoreRepository.findByUseCase(useCase)
                         .collectList()
-                        .map(useCaseScores -> rank(models, useCaseScores, useCase, tier, maxBudgetPer1M)));
+                        .map(useCaseScores -> rank(models, useCaseScores, useCase, tier, maxBudgetPer1M, persona)));
     }
 
     private RecommendationResult rank(List<AiModel> models, List<UseCaseScore> useCaseScores,
-                                       String useCase, int qualityTier, double maxBudgetPer1M) {
+                                       String useCase, int qualityTier, double maxBudgetPer1M,
+                                       Persona persona) {
         Map<String, Double> scoreMap = new HashMap<>();
         for (UseCaseScore s : useCaseScores) {
             scoreMap.put(s.getModelId(), s.getScore());
@@ -83,6 +90,7 @@ public class RecommendationEngine {
         List<AiModel> scored = models.stream()
                 .filter(m -> scoreMap.containsKey(m.getId()))
                 .filter(m -> !HeuristicUseCaseScorer.isNonAssistant(m))
+                .filter(m -> persona == null || persona.accepts(m))
                 .toList();
 
         List<AiModel> candidates = scored.stream()
@@ -107,7 +115,7 @@ public class RecommendationEngine {
                     "No models available for this use case.");
         }
 
-        double budgetWeight  = BUDGET_WEIGHTS[qualityTier];
+        double budgetWeight  = persona != null ? persona.budgetWeight : BUDGET_WEIGHTS[qualityTier];
         double qualityWeight = 1.0 - budgetWeight;
 
         double maxBlended = candidates.stream()
@@ -134,7 +142,7 @@ public class RecommendationEngine {
         double  runnerUpScore = ranked.size() > 1 ? ranked.get(1).getValue() : 0;
 
         String reasoning = buildReasoning(topPick, useCase,
-                scoreMap.getOrDefault(topPick.getId(), 0.0), budgetRelaxed, qualityRelaxed, maxBudgetPer1M);
+                scoreMap.getOrDefault(topPick.getId(), 0.0), budgetRelaxed, qualityRelaxed, maxBudgetPer1M, persona);
 
         return new RecommendationResult(topPick, topScore, runnerUp, runnerUpScore, reasoning);
     }
@@ -203,8 +211,12 @@ public class RecommendationEngine {
     }
 
     private String buildReasoning(AiModel model, String useCase, double useCaseScore,
-                                  boolean budgetRelaxed, boolean qualityRelaxed, double maxBudget) {
+                                  boolean budgetRelaxed, boolean qualityRelaxed, double maxBudget,
+                                  Persona persona) {
         StringBuilder sb = new StringBuilder();
+        if (persona != null) {
+            sb.append(persona.label).append(" pick (").append(persona.description).append("): ");
+        }
         sb.append(String.format(
                 "%s scores %.1f/10 for %s at $%.2f/1M input and $%.2f/1M output tokens.",
                 model.getName(), useCaseScore, useCase,
