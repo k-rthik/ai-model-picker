@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { AiModel } from './types/models'
-import { fetchModels, triggerScrape, triggerRecompute } from './lib/api'
+import { fetchModels } from './lib/api'
 import { ModelCompareTable } from './components/compare/ModelCompareTable'
 import { CostCalculator } from './components/calculator/CostCalculator'
 import { RecommendationWizard } from './components/recommend/RecommendationWizard'
@@ -14,8 +14,6 @@ export default function Home() {
   const [models,   setModels]   = useState<AiModel[]>([])
   const [loading,  setLoading]  = useState(true)
   const [error,    setError]    = useState<string | null>(null)
-  const [scraping, setScraping] = useState(false)
-  const [scrapeMsg,setScrapeMsg]= useState<string | null>(null)
 
   useEffect(() => {
     fetchModels()
@@ -23,23 +21,6 @@ export default function Home() {
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
   }, [])
-
-  const handleScrape = async () => {
-    setScraping(true)
-    setScrapeMsg(null)
-    try {
-      await triggerScrape()
-      await triggerRecompute()
-      setScrapeMsg('Scrape complete. Reloading...')
-      const fresh = await fetchModels()
-      setModels(fresh)
-      setScrapeMsg('Data refreshed.')
-    } catch (e: unknown) {
-      setScrapeMsg(e instanceof Error ? e.message : 'Scrape failed')
-    } finally {
-      setScraping(false)
-    }
-  }
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'recommend', label: 'Recommend', icon: '🎯' },
@@ -62,17 +43,6 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-3">
-              {scrapeMsg && (
-                <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">{scrapeMsg}</span>
-              )}
-              <button
-                onClick={handleScrape}
-                disabled={scraping}
-                className="flex items-center gap-2 text-sm bg-gray-900 dark:bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
-              >
-                <span className={scraping ? 'animate-spin' : ''}>🔄</span>
-                {scraping ? 'Refreshing...' : 'Refresh Data'}
-              </button>
               <ThemeToggle />
             </div>
           </div>

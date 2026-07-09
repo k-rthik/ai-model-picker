@@ -33,7 +33,4 @@ export const fetchAlternative = (modelId: string, useCase: UseCase) =>
 export const fetchCostProjections = (inputTokens: number, outputTokens: number) =>
   get<CostProjection[]>(`/recommend/cost?inputTokens=${inputTokens}&outputTokens=${outputTokens}`)
 
-// Admin
-import { adminHeaders } from './adminApi'
-export const triggerScrape    = () => fetch(`${BASE}/admin/scrape`,    { method: 'POST', headers: adminHeaders() }).then(r => r.text())
-export const triggerRecompute = () => fetch(`${BASE}/admin/recompute`, { method: 'POST', headers: adminHeaders() }).then(r => r.text())
+// Admin actions live in adminApi.ts (key-gated) and are only used by /admin
