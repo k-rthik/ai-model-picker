@@ -1,20 +1,21 @@
 'use client'
 import { useState, useTransition } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts'
 import type { CostProjection } from '../../types/models'
 import { fetchCostProjections } from '../../lib/api'
 
-const PROVIDER_HEX: Record<string, { light: string; dark: string }> = {
-  anthropic: { light: '#f97316', dark: '#fb923c' },
-  openai:    { light: '#22c55e', dark: '#4ade80' },
-  google:    { light: '#3b82f6', dark: '#60a5fa' },
-  meta:      { light: '#a855f7', dark: '#c084fc' },
-  mistral:   { light: '#ef4444', dark: '#f87171' },
-}
+const CHART_TOP_N = 15
+const TABLE_TOP_N = 30
 
+// Palette-validated single hue (magnitude chart — identity lives in the labels)
+const BAR_HEX = { light: '#2563eb', dark: '#3b82f6' }
+
+/** Humane money: Free / cents for tiny amounts / plain dollars above. */
 function formatCost(n: number) {
-  if (n < 0.001) return `$${(n * 1000).toFixed(4)}m`
-  return `$${n.toFixed(4)}`
+  if (n === 0) return 'Free'
+  if (n < 0.01) return `${(n * 100).toFixed(2)}¢`
+  if (n < 1) return `$${n.toFixed(3)}`
+  return `$${n.toFixed(2)}`
 }
 
 export function CostCalculator() {
@@ -40,13 +41,17 @@ export function CostCalculator() {
     })
   }
 
-  const chartData = projections.map(p => ({
-    name:     p.modelName.replace('Claude ', 'C.').replace('GPT-', 'G-').replace('Gemini ', 'Gm.'),
-    fullName: p.modelName,
-    cost:     showBatch && p.hasBatchDiscount ? p.batchTotalCost : p.totalCost,
-    provider: p.provider,
-    isBatch:  showBatch && p.hasBatchDiscount,
+  // Free/self-hosted models make every "cheapest" answer $0 — separate them out
+  const paid = projections.filter(p => p.totalCost > 0)
+  const freeCount = projections.length - paid.length
+
+  const chartData = paid.slice(0, CHART_TOP_N).map(p => ({
+    name: p.modelName,
+    cost: showBatch && p.hasBatchDiscount ? p.batchTotalCost : p.totalCost,
+    isBatch: showBatch && p.hasBatchDiscount,
   }))
+
+  const tableRows = paid.slice(0, TABLE_TOP_N)
 
   return (
     <div className="space-y-6">
@@ -114,33 +119,52 @@ export function CostCalculator() {
 
       {projections.length > 0 && (
         <>
-          {/* Chart */}
+          {/* Chart: top-N cheapest paid models, horizontal so names stay readable */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Cost Comparison {showBatch ? '(batch pricing where available)' : '(standard pricing)'}
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+              {CHART_TOP_N} cheapest paid models {showBatch ? '(batch pricing where available)' : ''}
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 40, left: 10 }}>
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: isDark ? '#9ca3af' : '#6b7280' }} angle={-30} textAnchor="end" />
-                <YAxis tickFormatter={v => `$${v.toFixed(4)}`} tick={{ fontSize: 11, fill: isDark ? '#9ca3af' : '#6b7280' }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: isDark ? '#1f2937' : '#fff', border: '1px solid ' + (isDark ? '#374151' : '#e5e7eb'), borderRadius: 8, color: isDark ? '#f3f4f6' : '#111827' }}
-                  formatter={(value: number, _: string, props: { payload?: { fullName?: string; isBatch?: boolean } }) => [
-                    formatCost(value),
-                    props.payload?.isBatch ? 'Batch Total' : 'Total Cost'
-                  ]}
-                  labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+              For {inputTokens.toLocaleString()} input + {outputTokens.toLocaleString()} output tokens
+              {freeCount > 0 && ` · ${freeCount} free/self-hosted models excluded (they cost $0)`}
+            </p>
+            <ResponsiveContainer width="100%" height={CHART_TOP_N * 32 + 20}>
+              <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 64, bottom: 0, left: 8 }}>
+                <XAxis type="number" hide />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={210}
+                  tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }}
+                  tickLine={false}
+                  axisLine={false}
                 />
-                <Bar dataKey="cost" radius={[4, 4, 0, 0]}>
-                  {chartData.map((entry, i) => (
-                    <Cell key={i} fill={PROVIDER_HEX[entry.provider]?.[isDark ? 'dark' : 'light'] || '#94a3b8'} />
-                  ))}
+                <Tooltip
+                  cursor={{ fill: isDark ? '#37415133' : '#e5e7eb55' }}
+                  contentStyle={{ backgroundColor: isDark ? '#1f2937' : '#fff', border: '1px solid ' + (isDark ? '#374151' : '#e5e7eb'), borderRadius: 8, color: isDark ? '#f3f4f6' : '#111827' }}
+                  formatter={(value: number, _: string, props: { payload?: { isBatch?: boolean } }) => [
+                    formatCost(value),
+                    props.payload?.isBatch ? 'Batch total' : 'Total cost'
+                  ]}
+                />
+                <Bar
+                  dataKey="cost"
+                  barSize={18}
+                  radius={[0, 4, 4, 0]}
+                  fill={isDark ? BAR_HEX.dark : BAR_HEX.light}
+                >
+                  <LabelList
+                    dataKey="cost"
+                    position="right"
+                    formatter={(v: number) => formatCost(v)}
+                    style={{ fontSize: 11, fill: isDark ? '#d1d5db' : '#374151' }}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Table */}
+          {/* Table: top-N paid models */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
               <thead className="bg-gray-50 dark:bg-gray-800">
@@ -153,10 +177,10 @@ export function CostCalculator() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {projections.map((p, i) => (
+                {tableRows.map((p, i) => (
                   <tr key={p.modelId} className={i === 0 ? 'bg-green-50 dark:bg-green-950' : ''}>
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
-                      {i === 0 && <span className="text-xs text-green-600 dark:text-green-400 font-bold mr-1">CHEAPEST</span>}
+                      {i === 0 && <span className="text-xs text-green-600 dark:text-green-400 font-bold mr-1">CHEAPEST PAID</span>}
                       {p.modelName}
                     </td>
                     <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-300">{formatCost(p.inputCost)}</td>
@@ -169,6 +193,10 @@ export function CostCalculator() {
                 ))}
               </tbody>
             </table>
+            <div className="px-4 py-3 text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
+              Showing the {Math.min(TABLE_TOP_N, paid.length)} cheapest paid models of {paid.length}
+              {freeCount > 0 && ` · plus ${freeCount} free/self-hosted models (Ollama, free tiers) at $0 — see the Compare tab for those`}
+            </div>
           </div>
         </>
       )}
