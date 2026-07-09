@@ -7,8 +7,8 @@ import { fetchCostProjections } from '../../lib/api'
 const CHART_TOP_N = 15
 const PAGE_SIZE = 25
 
-// Palette-validated brass, per theme (magnitude chart — identity lives in the labels)
-const BAR_HEX = { light: '#96731a', dark: '#a8842e' }
+// Palette-validated single hue (magnitude chart — identity lives in the labels)
+const BAR_HEX = { light: '#2563eb', dark: '#3b82f6' }
 
 /** Humane money: Free / cents for tiny amounts / plain dollars above. */
 function formatCost(n: number) {

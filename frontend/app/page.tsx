@@ -78,7 +78,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity" title="Home">
-              <span className="text-2xl">⚙️</span>
+              <span className="text-2xl">🤖</span>
               <div>
                 <div className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">AI Model Picker</div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">Benchmarks · Cost · Recommendations</div>
