@@ -104,6 +104,38 @@ export const CHINA_PROVIDERS = new Set([
 export const CHINA_WARNING =
   'Chinese company — hosted API may process data under Chinese jurisdiction. Review data-residency requirements before sending sensitive data.'
 
+/**
+ * Profession presets: curated defaults mapped onto the existing engine —
+ * a typical use case, a quality bar, and (for regulated professions) the
+ * Enterprise persona's compliant-provider filter. Not professional advice:
+ * provider compliance for regulated data requires a BAA/DPA with the provider.
+ */
+export interface Profession {
+  id: string
+  label: string
+  icon: string
+  useCase: UseCase
+  quality: number
+  persona: string | null   // ENTERPRISE routes through compliance-grade providers
+  task: string             // what we assume they're doing, shown in the interpretation
+}
+
+export const PROFESSIONS: Profession[] = [
+  { id: 'doctor',     label: 'Doctor / Clinician',      icon: '🩺', useCase: 'summarization', quality: 4, persona: 'ENTERPRISE', task: 'summarizing clinical notes & reports' },
+  { id: 'lawyer',     label: 'Lawyer',                  icon: '⚖️', useCase: 'long-context',  quality: 5, persona: 'ENTERPRISE', task: 'reviewing contracts & long documents' },
+  { id: 'accountant', label: 'Chartered Accountant',    icon: '🧾', useCase: 'analysis',      quality: 4, persona: 'ENTERPRISE', task: 'financial analysis & reconciliation' },
+  { id: 'architect',  label: 'Architect',               icon: '📐', useCase: 'vision',        quality: 4, persona: null,         task: 'reading drawings, plans & site photos' },
+  { id: 'journalist', label: 'Journalist',              icon: '📰', useCase: 'writing',       quality: 3, persona: null,         task: 'drafting & research-backed writing' },
+  { id: 'teacher',    label: 'Teacher / Professor',     icon: '🍎', useCase: 'writing',       quality: 2, persona: null,         task: 'lesson materials & feedback at low cost' },
+  { id: 'support',    label: 'Customer Support Lead',   icon: '🎧', useCase: 'rag',           quality: 3, persona: null,         task: 'knowledge-base Q&A bots' },
+  { id: 'datasci',    label: 'Data Scientist',          icon: '📊', useCase: 'analysis',      quality: 4, persona: null,         task: 'data analysis & modeling help' },
+  { id: 'marketer',   label: 'Marketer',                icon: '📣', useCase: 'writing',       quality: 3, persona: null,         task: 'campaign copy & content' },
+  { id: 'developer',  label: 'Software Developer',      icon: '💻', useCase: 'coding',        quality: 4, persona: null,         task: 'code generation & review' },
+]
+
+export const COMPLIANCE_CAVEAT =
+  'Routed to compliance-grade providers, but verify a BAA/DPA with the provider before sending regulated data — this is guidance, not legal advice.'
+
 export const PERSONAS: { id: string; label: string; description: string; icon: string }[] = [
   { id: 'SOLO_HACKER', label: 'Solo hacker',  description: 'Cheapest API that works',       icon: '👨‍💻' },
   { id: 'STARTUP_MVP', label: 'Startup MVP',  description: 'Optimize for shipping speed',   icon: '🚀' },

@@ -63,6 +63,16 @@ export default function MethodologyPage() {
           expensive-output models don&apos;t hide behind cheap input rates.
         </Section>
 
+        <Section n="+" title="Persona & profession presets">
+          Personas (Student, Enterprise, Solo hacker…) and profession presets (Doctor, Lawyer,
+          Architect…) don&apos;t change the scoring — they pre-answer the wizard&apos;s questions:
+          a typical use case, a quality bar, and sometimes a provider constraint. Regulated
+          professions route to providers with established enterprise compliance programs
+          (SOC 2, DPAs, regional hosting). That routing is a heuristic, <strong>not legal
+          advice</strong>: using any hosted model with regulated data (e.g. patient records)
+          requires your own agreement — such as a BAA — with that provider.
+        </Section>
+
         <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-xl p-5 text-sm text-amber-800 dark:text-amber-300">
           <strong>Honest caveat:</strong> these scores are informed guidance, not an exhaustive benchmark
           suite. The curated layer reflects editorial judgment; the arena layer reflects aggregate human

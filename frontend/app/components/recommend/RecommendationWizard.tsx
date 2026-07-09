@@ -1,7 +1,7 @@
 'use client'
 import { useState, useTransition } from 'react'
 import type { RecommendationResult, AlternativeAlert, UseCase } from '../../types/models'
-import { USE_CASES, PERSONAS, CHINA_PROVIDERS, CHINA_WARNING } from '../../types/models'
+import { USE_CASES, PERSONAS, PROFESSIONS, COMPLIANCE_CAVEAT, CHINA_PROVIDERS, CHINA_WARNING } from '../../types/models'
 import { fetchRecommendation, fetchNlRecommendation, fetchAlternative } from '../../lib/api'
 import { ProviderBadge } from '../shared/ProviderBadge'
 import { SpeedBadge } from '../shared/SpeedBadge'
@@ -14,6 +14,7 @@ export function RecommendationWizard() {
   const [quality,   setQuality]   = useState(3)
   const [maxBudget, setMaxBudget] = useState(0)
   const [persona,   setPersona]   = useState<string | null>(null)
+  const [profession, setProfession] = useState('')
   const [skipChina, setSkipChina] = useState(false)
   const [nlQuery,   setNlQuery]   = useState('')
   const [interpretation, setInterpretation] = useState<string | null>(null)
@@ -45,6 +46,25 @@ export function RecommendationWizard() {
       try {
         const rec = await fetchRecommendation(useCase, quality, maxBudget, undefined, skipChina)
         await finish(rec, useCase, skipChina ? 'Chinese providers excluded' : null)
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : 'Failed to get recommendation')
+      }
+    })
+  }
+
+  // Profession flow: use case, quality, and provider constraints all preset
+  const recommendForProfession = (professionId: string) => {
+    const prof = PROFESSIONS.find(p => p.id === professionId)
+    if (!prof) return
+    setError(null)
+    setUseCase(prof.useCase)
+    startTransition(async () => {
+      try {
+        const rec = await fetchRecommendation(prof.useCase, prof.quality, 0, prof.persona ?? undefined, skipChina)
+        const note = `${prof.icon} ${prof.label} preset — assumed task: ${prof.task}`
+          + (prof.persona === 'ENTERPRISE' ? ` · ${COMPLIANCE_CAVEAT}` : '')
+          + (skipChina ? ' · Chinese providers excluded' : '')
+        await finish(rec, prof.useCase, note)
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Failed to get recommendation')
       }
@@ -90,7 +110,7 @@ export function RecommendationWizard() {
 
   const reset = () => {
     setStep(0); setUseCase(null); setQuality(3); setMaxBudget(0); setPersona(null)
-    setSkipChina(false); setNlQuery(''); setInterpretation(null); setResult(null); setAlert(null)
+    setProfession(''); setSkipChina(false); setNlQuery(''); setInterpretation(null); setResult(null); setAlert(null)
   }
 
   return (
@@ -150,6 +170,25 @@ export function RecommendationWizard() {
               />
               ⚠️ Skip Chinese providers <span className="text-gray-400 dark:text-gray-500">(applies to all flows below too)</span>
             </label>
+          </div>
+
+          {/* Profession */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Or pick your profession</h3>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
+              Presets a typical task, quality bar, and — for regulated professions — compliance-grade providers.
+            </p>
+            <select
+              value={profession}
+              disabled={isPending}
+              onChange={e => { setProfession(e.target.value); if (e.target.value) recommendForProfession(e.target.value) }}
+              className="w-full sm:w-96 text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <option value="" disabled>Select your profession…</option>
+              {PROFESSIONS.map(p => (
+                <option key={p.id} value={p.id}>{p.icon} {p.label} — {p.task}</option>
+              ))}
+            </select>
           </div>
 
           {/* Personas */}
