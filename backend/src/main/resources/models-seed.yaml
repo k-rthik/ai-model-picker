@@ -1,0 +1,909 @@
+models:
+  # ── Ollama (self-hosted, all free) ────────────────────────────────────────
+
+  - id: ollama-llama3-8b
+    name: "Llama 3 8B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 8192
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Local Llama 3 8B via Ollama — free, requires local GPU/CPU"
+
+  - id: ollama-llama3-70b
+    name: "Llama 3 70B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 8192
+    maxOutputTokens: 4096
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Local Llama 3 70B via Ollama — free, requires ~40GB VRAM"
+
+  - id: ollama-llama3.1-8b
+    name: "Llama 3.1 8B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 128000
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Llama 3.1 8B — 128K context, tool use support"
+
+  - id: ollama-llama3.1-70b
+    name: "Llama 3.1 70B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 128000
+    maxOutputTokens: 4096
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Llama 3.1 70B — 128K context, best open-source at 70B"
+
+  - id: ollama-llama3.1-405b
+    name: "Llama 3.1 405B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 128000
+    maxOutputTokens: 4096
+    speedTier: slow
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Llama 3.1 405B — requires ~240GB VRAM, frontier-class open model"
+
+  - id: ollama-llama3.2-1b
+    name: "Llama 3.2 1B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 128000
+    maxOutputTokens: 2048
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Tiny edge model, runs on CPU"
+
+  - id: ollama-llama3.2-3b
+    name: "Llama 3.2 3B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 128000
+    maxOutputTokens: 2048
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Small but capable edge model"
+
+  - id: ollama-llama3.3-70b
+    name: "Llama 3.3 70B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 128000
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Latest Llama 3.3 70B — improved over 3.1 at same size"
+
+  - id: ollama-llama3.2-vision-11b
+    name: "Llama 3.2 Vision 11B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 128000
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: true
+      streaming: true
+      function_calling: false
+    notes: "Llama 3.2 multimodal — image + text understanding"
+
+  - id: ollama-llama3.2-vision-90b
+    name: "Llama 3.2 Vision 90B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 128000
+    maxOutputTokens: 4096
+    speedTier: slow
+    capabilities:
+      vision: true
+      streaming: true
+      function_calling: false
+    notes: "Best open-source vision model"
+
+  - id: ollama-deepseek-r1-7b
+    name: "DeepSeek R1 7B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "DeepSeek R1 distilled 7B — chain-of-thought reasoning"
+
+  - id: ollama-deepseek-r1-14b
+    name: "DeepSeek R1 14B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "DeepSeek R1 distilled 14B"
+
+  - id: ollama-deepseek-r1-32b
+    name: "DeepSeek R1 32B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "DeepSeek R1 distilled 32B — strong reasoning"
+
+  - id: ollama-deepseek-r1-70b
+    name: "DeepSeek R1 70B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "DeepSeek R1 distilled 70B — near-frontier reasoning, open weights"
+
+  - id: ollama-deepseek-coder-v2
+    name: "DeepSeek Coder V2 (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 163840
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Best open-source coding model"
+
+  - id: ollama-gemma2-2b
+    name: "Gemma 2 2B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 8192
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Google Gemma 2 2B — very fast, runs on CPU"
+
+  - id: ollama-gemma2-9b
+    name: "Gemma 2 9B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 8192
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Google Gemma 2 9B — punches above its weight"
+
+  - id: ollama-gemma2-27b
+    name: "Gemma 2 27B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 8192
+    maxOutputTokens: 4096
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Google Gemma 2 27B — best quality at 27B"
+
+  - id: ollama-qwen2.5-7b
+    name: "Qwen 2.5 7B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Alibaba Qwen 2.5 7B — strong multilingual"
+
+  - id: ollama-qwen2.5-14b
+    name: "Qwen 2.5 14B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Qwen 2.5 14B"
+
+  - id: ollama-qwen2.5-32b
+    name: "Qwen 2.5 32B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Qwen 2.5 32B — best sub-40B open model"
+
+  - id: ollama-qwen2.5-72b
+    name: "Qwen 2.5 72B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Qwen 2.5 72B — flagship open model from Alibaba"
+
+  - id: ollama-qwen2.5-coder-7b
+    name: "Qwen 2.5 Coder 7B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Specialist coding model, strong on code completion"
+
+  - id: ollama-qwen2.5-coder-32b
+    name: "Qwen 2.5 Coder 32B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Best open-source code model at 32B"
+
+  - id: ollama-phi4
+    name: "Phi-4 (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 16384
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Microsoft Phi-4 14B — best-in-class for size"
+
+  - id: ollama-phi3-mini
+    name: "Phi-3 Mini (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 4096
+    maxOutputTokens: 2048
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Microsoft Phi-3 Mini — very small, fast, runs on CPU"
+
+  - id: ollama-phi3-medium
+    name: "Phi-3 Medium (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 131072
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Microsoft Phi-3 Medium 14B — 128K context"
+
+  - id: ollama-mistral-7b
+    name: "Mistral 7B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 32768
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Local Mistral 7B via Ollama"
+
+  - id: ollama-mistral-nemo
+    name: "Mistral Nemo (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 128000
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Mistral Nemo 12B — 128K context, multilingual"
+
+  - id: ollama-codellama-7b
+    name: "Code Llama 7B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 100000
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Meta Code Llama 7B — fast code completion"
+
+  - id: ollama-codellama-34b
+    name: "Code Llama 34B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 100000
+    maxOutputTokens: 4096
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Meta Code Llama 34B — strong code generation"
+
+  - id: ollama-nomic-embed-text
+    name: "Nomic Embed Text (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 8192
+    maxOutputTokens: 0
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: false
+      function_calling: false
+      embeddings: true
+    notes: "Local text embedding model — 768 dims"
+
+  - id: ollama-mxbai-embed-large
+    name: "MxBai Embed Large (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 512
+    maxOutputTokens: 0
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: false
+      function_calling: false
+      embeddings: true
+    notes: "Best local embedding model — 1024 dims"
+
+  - id: ollama-qwen2-7b
+    name: "Qwen 2 7B (Ollama)"
+    providerId: ollama
+    pricingModel: free
+    contextWindow: 32768
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Alibaba Qwen 2 7B via Ollama"
+
+  # ── HuggingFace Serverless Inference ──────────────────────────────────────
+
+  - id: hf-meta-llama-3.1-8b-instruct
+    name: "Llama 3.1 8B Instruct (HF)"
+    providerId: huggingface
+    pricingModel: per_token
+    inputPricePer1m: 0.10
+    outputPricePer1m: 0.10
+    contextWindow: 128000
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Llama 3.1 8B via HF Serverless Inference"
+
+  - id: hf-meta-llama-3.1-70b-instruct
+    name: "Llama 3.1 70B Instruct (HF)"
+    providerId: huggingface
+    pricingModel: per_token
+    inputPricePer1m: 0.59
+    outputPricePer1m: 0.79
+    contextWindow: 128000
+    maxOutputTokens: 4096
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Llama 3.1 70B via HF Serverless Inference"
+
+  - id: hf-mistralai-mixtral-8x7b-instruct
+    name: "Mixtral 8x7B Instruct (HF)"
+    providerId: huggingface
+    pricingModel: per_token
+    inputPricePer1m: 0.60
+    outputPricePer1m: 0.60
+    contextWindow: 32768
+    maxOutputTokens: 4096
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Mixtral MoE 8x7B via HF Serverless Inference"
+
+  - id: hf-mistralai-mistral-7b-instruct-v0.3
+    name: "Mistral 7B Instruct v0.3 (HF)"
+    providerId: huggingface
+    pricingModel: free
+    contextWindow: 32768
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Mistral 7B free tier on HF Inference"
+
+  - id: hf-deepseek-ai-deepseek-r1
+    name: "DeepSeek R1 (HF)"
+    providerId: huggingface
+    pricingModel: per_token
+    inputPricePer1m: 0.55
+    outputPricePer1m: 2.19
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: slow
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "DeepSeek R1 full model via HF Inference — chain-of-thought reasoning"
+
+  - id: hf-qwen-qwen2.5-72b-instruct
+    name: "Qwen 2.5 72B Instruct (HF)"
+    providerId: huggingface
+    pricingModel: per_token
+    inputPricePer1m: 0.30
+    outputPricePer1m: 0.30
+    contextWindow: 131072
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Qwen 2.5 72B via HF Serverless Inference"
+
+  - id: hf-google-gemma-2-9b-it
+    name: "Gemma 2 9B IT (HF)"
+    providerId: huggingface
+    pricingModel: free
+    contextWindow: 8192
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Google Gemma 2 9B free tier on HF Inference"
+
+  - id: hf-microsoft-phi-4
+    name: "Phi-4 (HF)"
+    providerId: huggingface
+    pricingModel: per_token
+    inputPricePer1m: 0.07
+    outputPricePer1m: 0.14
+    contextWindow: 16384
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Microsoft Phi-4 via HF Inference"
+
+  - id: hf-codellama-codellama-34b-instruct
+    name: "Code Llama 34B Instruct (HF)"
+    providerId: huggingface
+    pricingModel: free
+    contextWindow: 100000
+    maxOutputTokens: 4096
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Code Llama 34B free tier on HF Inference"
+
+  # ── Perplexity ────────────────────────────────────────────────────────────
+
+  - id: perplexity-sonar-small
+    name: "Perplexity Sonar Small"
+    providerId: perplexity
+    pricingModel: per_token
+    inputPricePer1m: 0.20
+    outputPricePer1m: 0.20
+    contextWindow: 12000
+    maxOutputTokens: 8192
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+      web_search: true
+    notes: "Fast web-grounded responses, built-in search"
+
+  - id: perplexity-sonar-large
+    name: "Perplexity Sonar Large"
+    providerId: perplexity
+    pricingModel: per_token
+    inputPricePer1m: 1.00
+    outputPricePer1m: 1.00
+    contextWindow: 127072
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+      web_search: true
+    notes: "Best web-grounded large model"
+
+  - id: perplexity-sonar-pro
+    name: "Perplexity Sonar Pro"
+    providerId: perplexity
+    pricingModel: per_token
+    inputPricePer1m: 3.00
+    outputPricePer1m: 15.00
+    contextWindow: 200000
+    maxOutputTokens: 8192
+    speedTier: slow
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+      web_search: true
+    notes: "Most capable Perplexity model — deep research queries"
+
+  - id: perplexity-sonar-reasoning
+    name: "Perplexity Sonar Reasoning"
+    providerId: perplexity
+    pricingModel: per_token
+    inputPricePer1m: 1.00
+    outputPricePer1m: 5.00
+    contextWindow: 127072
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+      web_search: true
+    notes: "Web-grounded reasoning model with chain-of-thought"
+
+  # ── Cohere ────────────────────────────────────────────────────────────────
+
+  - id: cohere-command-r
+    name: "Command R"
+    providerId: cohere
+    pricingModel: per_token
+    inputPricePer1m: 0.15
+    outputPricePer1m: 0.60
+    contextWindow: 128000
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+      rag: true
+    notes: "Best-in-class for RAG pipelines"
+
+  - id: cohere-command-r-plus
+    name: "Command R+"
+    providerId: cohere
+    pricingModel: per_token
+    inputPricePer1m: 2.50
+    outputPricePer1m: 10.00
+    contextWindow: 128000
+    maxOutputTokens: 4096
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+      rag: true
+    notes: "High-quality RAG and enterprise tasks"
+
+  - id: cohere-command-r7b
+    name: "Command R7B"
+    providerId: cohere
+    pricingModel: per_token
+    inputPricePer1m: 0.0375
+    outputPricePer1m: 0.15
+    contextWindow: 128000
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+      rag: true
+    notes: "Smallest Command R — cheapest RAG option"
+
+  - id: cohere-command-light
+    name: "Command Light"
+    providerId: cohere
+    pricingModel: per_token
+    inputPricePer1m: 0.30
+    outputPricePer1m: 0.60
+    contextWindow: 4096
+    maxOutputTokens: 4096
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Lightweight Cohere model for simple tasks"
+
+  - id: cohere-embed-english-v3
+    name: "Embed English v3"
+    providerId: cohere
+    pricingModel: per_token
+    inputPricePer1m: 0.10
+    outputPricePer1m: 0.00
+    contextWindow: 512
+    maxOutputTokens: 0
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: false
+      function_calling: false
+      embeddings: true
+    notes: "Best-in-class English embeddings — 1024 dims"
+
+  - id: cohere-embed-multilingual-v3
+    name: "Embed Multilingual v3"
+    providerId: cohere
+    pricingModel: per_token
+    inputPricePer1m: 0.10
+    outputPricePer1m: 0.00
+    contextWindow: 512
+    maxOutputTokens: 0
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: false
+      function_calling: false
+      embeddings: true
+    notes: "Best multilingual embeddings — 108 languages"
+
+  # ── Databricks ────────────────────────────────────────────────────────────
+
+  - id: databricks-dbrx-instruct
+    name: "DBRX Instruct"
+    providerId: databricks
+    pricingModel: per_token
+    inputPricePer1m: 0.75
+    outputPricePer1m: 2.25
+    contextWindow: 32768
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Databricks open-source MoE model"
+
+  - id: databricks-meta-llama-3.1-70b-instruct
+    name: "Llama 3.1 70B Instruct (Databricks)"
+    providerId: databricks
+    pricingModel: per_token
+    inputPricePer1m: 1.00
+    outputPricePer1m: 3.00
+    contextWindow: 128000
+    maxOutputTokens: 8192
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Llama 3.1 70B hosted on Databricks Foundation Model APIs"
+
+  - id: databricks-meta-llama-3.1-405b-instruct
+    name: "Llama 3.1 405B Instruct (Databricks)"
+    providerId: databricks
+    pricingModel: per_token
+    inputPricePer1m: 5.00
+    outputPricePer1m: 15.00
+    contextWindow: 128000
+    maxOutputTokens: 8192
+    speedTier: slow
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Largest open-weight model hosted on Databricks"
+
+  - id: databricks-mixtral-8x7b-instruct
+    name: "Mixtral 8x7B Instruct (Databricks)"
+    providerId: databricks
+    pricingModel: per_token
+    inputPricePer1m: 0.50
+    outputPricePer1m: 1.00
+    contextWindow: 32768
+    maxOutputTokens: 4096
+    speedTier: medium
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Mixtral MoE via Databricks Foundation Model APIs"
+
+  # ── Groq ──────────────────────────────────────────────────────────────────
+
+  - id: groq-llama-3.3-70b-versatile
+    name: "Llama 3.3 70B Versatile (Groq)"
+    providerId: groq
+    pricingModel: per_token
+    inputPricePer1m: 0.59
+    outputPricePer1m: 0.79
+    contextWindow: 128000
+    maxOutputTokens: 32768
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Fastest 70B model — Groq LPU hardware"
+
+  - id: groq-llama-3.1-8b-instant
+    name: "Llama 3.1 8B Instant (Groq)"
+    providerId: groq
+    pricingModel: per_token
+    inputPricePer1m: 0.05
+    outputPricePer1m: 0.08
+    contextWindow: 128000
+    maxOutputTokens: 8192
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Ultra-fast, ultra-cheap — 750 tokens/sec on Groq"
+
+  - id: groq-llama-3.1-70b-versatile
+    name: "Llama 3.1 70B Versatile (Groq)"
+    providerId: groq
+    pricingModel: per_token
+    inputPricePer1m: 0.59
+    outputPricePer1m: 0.79
+    contextWindow: 128000
+    maxOutputTokens: 32768
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "High-quality + blazing fast on Groq"
+
+  - id: groq-mixtral-8x7b-32768
+    name: "Mixtral 8x7B (Groq)"
+    providerId: groq
+    pricingModel: per_token
+    inputPricePer1m: 0.24
+    outputPricePer1m: 0.24
+    contextWindow: 32768
+    maxOutputTokens: 32768
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Mixtral on Groq — fast MoE inference"
+
+  - id: groq-gemma2-9b-it
+    name: "Gemma 2 9B IT (Groq)"
+    providerId: groq
+    pricingModel: per_token
+    inputPricePer1m: 0.20
+    outputPricePer1m: 0.20
+    contextWindow: 8192
+    maxOutputTokens: 8192
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Google Gemma 2 9B on Groq hardware"
+
+  - id: groq-deepseek-r1-distill-llama-70b
+    name: "DeepSeek R1 Distill Llama 70B (Groq)"
+    providerId: groq
+    pricingModel: per_token
+    inputPricePer1m: 0.75
+    outputPricePer1m: 0.99
+    contextWindow: 131072
+    maxOutputTokens: 16384
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: false
+    notes: "Fastest reasoning model — DeepSeek R1 distilled on Groq"
+
+  - id: groq-qwen-qwen-2.5-32b
+    name: "Qwen 2.5 32B (Groq)"
+    providerId: groq
+    pricingModel: per_token
+    inputPricePer1m: 0.79
+    outputPricePer1m: 0.79
+    contextWindow: 131072
+    maxOutputTokens: 16384
+    speedTier: fast
+    capabilities:
+      vision: false
+      streaming: true
+      function_calling: true
+    notes: "Qwen 2.5 32B on Groq — fast and capable"

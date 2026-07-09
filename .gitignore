@@ -1,0 +1,21 @@
+### Backend (Gradle/Java) ###
+backend/.gradle
+backend/build/
+!backend/gradle/wrapper/gradle-wrapper.jar
+backend/data/
+
+### Frontend (Next.js) ###
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+### General ###
+.idea
+*.iml
+.vscode
+.DS_Store
+*.db
+
+### Claude Code local settings ###
+.claude/settings.local.json
+frontend/*.tsbuildinfo

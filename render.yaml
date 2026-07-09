@@ -1,0 +1,14 @@
+# Render Blueprint — deploys the Spring backend as a free Docker web service.
+# Connect the GitHub repo at https://dashboard.render.com → New → Blueprint.
+services:
+  - type: web
+    name: ai-model-picker-api
+    runtime: docker
+    rootDir: backend
+    plan: free
+    healthCheckPath: /api/models
+    envVars:
+      # Set this to your real Vercel domain after the frontend deploys;
+      # the wildcard also covers Vercel preview deployments.
+      - key: ALLOWED_ORIGINS
+        value: https://*.vercel.app,http://localhost:3000

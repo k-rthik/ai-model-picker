@@ -1,0 +1,8 @@
+node_modules/
+.next/
+tests/
+playwright.config.ts
+test-results/
+playwright-report/
+.idea/
+README.md

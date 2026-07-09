@@ -1,0 +1,6 @@
+build/
+.gradle/
+data/
+*.db
+.idea/
+HELP.md

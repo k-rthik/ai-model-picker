@@ -1,0 +1,26 @@
+services:
+  backend:
+    build: ./backend
+    container_name: ai-model-picker-backend
+    ports:
+      # Host 8081 by default — 8080 tends to be taken by other local apps.
+      # Must match the NEXT_PUBLIC_API_URL baked into the frontend build.
+      - "${BACKEND_PORT:-8081}:8080"
+    volumes:
+      # Persists the SQLite catalog + scores; seeds from the local dev DB if present
+      - ./backend/data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # URL the *browser* uses to reach the API (client-side fetches only)
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8081/api}
+    container_name: ai-model-picker-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
