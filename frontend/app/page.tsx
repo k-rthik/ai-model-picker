@@ -67,7 +67,13 @@ export default function Home() {
               </div>
             </a>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              <a
+                href="/methodology"
+                className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+              >
+                ℹ️ How scores work
+              </a>
               <ThemeToggle />
             </div>
           </div>
