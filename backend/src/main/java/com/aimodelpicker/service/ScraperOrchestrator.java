@@ -56,16 +56,15 @@ public class ScraperOrchestrator {
     @Scheduled(cron = "0 0 2 * * *", zone = "UTC")
     public void runDailyScrape() {
         log.info("Starting daily scrape + ingest job...");
-        // Refresh model catalog from OpenRouter + YAML
+        // Sequential: ingest then scrape — concurrent writers deadlock SQLite
         ingestionOrchestrator.runAll()
-                .subscribe(s -> log.info("Ingest [{}]: +{} ~{} skip{}", s.source(), s.added(), s.updated(), s.skipped()),
-                        e -> log.error("Ingest failed: {}", e.getMessage()));
-        // Scrape benchmarks/arena scores
-        runAllScrapers().subscribe(
-                null,
-                e -> log.error("Daily scrape failed: {}", e.getMessage()),
-                () -> log.info("Daily scrape complete")
-        );
+                .doOnNext(s -> log.info("Ingest [{}]: +{} ~{} skip{}", s.source(), s.added(), s.updated(), s.skipped()))
+                .then(runAllScrapers())
+                .subscribe(
+                        null,
+                        e -> log.error("Daily scrape/ingest failed: {}", e.getMessage()),
+                        () -> log.info("Daily scrape + ingest complete")
+                );
     }
 
     public Mono<Void> runAllScrapers() {
@@ -109,13 +108,13 @@ public class ScraperOrchestrator {
 
     private Mono<Void> upsertBenchmarkScores(List<BenchmarkScore> scores) {
         return Flux.fromIterable(scores)
-                .flatMap(benchmarkRepo::upsert)
+                .concatMap(benchmarkRepo::upsert)
                 .then();
     }
 
     private Mono<Void> insertArenaScores(List<ArenaScore> scores) {
         return Flux.fromIterable(scores)
-                .flatMap(arenaRepo::insert)
+                .concatMap(arenaRepo::insert)
                 .then();
     }
 
@@ -173,7 +172,7 @@ public class ScraperOrchestrator {
                     }
 
                     return Flux.fromIterable(computedScores)
-                            .flatMap(useCaseRepo::upsert)
+                            .concatMap(useCaseRepo::upsert)
                             .then();
                 });
     }

@@ -33,10 +33,10 @@ public class IngestionOrchestrator {
 
     public record IngestionSummary(String source, int added, int updated, int skipped, String error) {}
 
-    /** Run all registered ingestors. */
+    /** Run all registered ingestors. Sequential: SQLite allows a single writer. */
     public Flux<IngestionSummary> runAll() {
         return Flux.fromIterable(ingestors)
-                .flatMap(this::run);
+                .concatMap(this::run);
     }
 
     /** Run a specific ingestor by sourceId. */
@@ -54,7 +54,7 @@ public class IngestionOrchestrator {
         AtomicInteger skipped = new AtomicInteger();
 
         return ingestor.ingest()
-                .flatMap(record -> upsertModel(record, added, updated, skipped))
+                .concatMap(record -> upsertModel(record, added, updated, skipped))
                 .then(Mono.defer(() -> {
                     IngestionSummary summary = new IngestionSummary(
                             ingestor.sourceId(), added.get(), updated.get(), skipped.get(), null);
