@@ -9,12 +9,30 @@ import { ThemeToggle } from './components/shared/ThemeToggle'
 
 type Tab = 'compare' | 'cost' | 'recommend'
 
+// Shown while the free-tier backend cold-starts (up to ~1 min)
+const WAKE_QUIPS = [
+  "This app runs on free hosting, so the server naps when nobody's around. We're gently poking it with a stick. ⏱️ ~1 min",
+  'Free tier means the server sleeps in a fridge somewhere. Warming it up now… ☕',
+  'The backend heard "unpaid position" and took it literally. Negotiating its return…',
+  'Somewhere in a data center, our server is hitting snooze. One more poke should do it…',
+  'An app that compares AI costs was never going to overpay for hosting. The server agrees — it clocks out when idle. Waking it…',
+  'Still free. Still waking. The models it recommends respond faster than the server recommending them. 🐢',
+]
+
 export default function Home() {
   const [tab,      setTab]      = useState<Tab>('recommend')
   const [models,   setModels]   = useState<AiModel[]>([])
   const [loading,  setLoading]  = useState(true)
   const [error,    setError]    = useState<string | null>(null)
   const [waking,   setWaking]   = useState(false)
+  const [quipIdx,  setQuipIdx]  = useState(0)
+
+  // Rotate wake-up quips so the wait feels shorter than it is
+  useEffect(() => {
+    if (!waking) return
+    const t = setInterval(() => setQuipIdx(i => (i + 1) % WAKE_QUIPS.length), 7000)
+    return () => clearInterval(t)
+  }, [waking])
 
   // Free-tier hosting spins the backend down when idle; the first request can
   // take up to a minute. Retry while it boots and tell the user what's happening.
@@ -123,9 +141,9 @@ export default function Home() {
             <span className="animate-spin text-lg">⏳</span>
             {waking ? (
               <span>
-                <strong>The machine is waking up…</strong> Free hosting naps when idle — the
-                backend can take up to a minute to come alive. Hang tight, this page will
-                load automatically.
+                <strong>The machine is waking up (free hosting)…</strong>{' '}
+                {WAKE_QUIPS[quipIdx]}{' '}
+                <span className="text-blue-600 dark:text-blue-400">This page loads itself when it&apos;s ready — no refresh needed.</span>
               </span>
             ) : (
               <span>Loading models…</span>
