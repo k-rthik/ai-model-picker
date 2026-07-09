@@ -23,6 +23,8 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
   const [scores, setScores] = useState<Record<string, number> | null>(null)
   const [hideChina, setHideChina] = useState(false)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 25
 
   const providers = useMemo(() => ['all', ...Array.from(new Set(models.map(m => m.providerId).filter(Boolean)))], [models])
 
@@ -76,6 +78,13 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
     })
     return list
   }, [models, sortKey, sortAsc, filterProvider, scores, hideChina, search])
+
+  // Any change to filters or sorting jumps back to the first page
+  useEffect(() => { setPage(0) }, [filterProvider, filterUseCase, hideChina, search, sortKey, sortAsc])
+
+  const pageCount = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
+  const safePage  = Math.min(page, pageCount - 1)
+  const pageRows  = sorted.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE)
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortAsc(v => !v)
@@ -158,7 +167,7 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
-            {sorted.map((model, i) => (
+            {pageRows.map((model, i) => (
               <tr
                 key={model.id}
                 className={`hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors cursor-pointer
@@ -202,6 +211,30 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between mt-4 text-sm">
+          <button
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={safePage === 0}
+            className="px-4 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium disabled:opacity-40 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+          >
+            ← Prev
+          </button>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            Page {safePage + 1} of {pageCount}
+            <span className="text-gray-400 dark:text-gray-500"> · rows {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, sorted.length)} of {sorted.length}</span>
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(pageCount - 1, p + 1))}
+            disabled={safePage >= pageCount - 1}
+            className="px-4 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium disabled:opacity-40 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+          >
+            Next →
+          </button>
+        </div>
+      )}
     </div>
   )
 }
