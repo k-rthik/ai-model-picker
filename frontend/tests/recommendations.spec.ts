@@ -2,11 +2,11 @@ import { test, expect, type Page } from '@playwright/test'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-/** Navigate to the Recommend tab */
+/** Navigate to the Recommend tab (default tab; click is belt-and-braces) */
 async function openRecommendTab(page: Page) {
   await page.goto('/')
-  await page.getByRole('button', { name: /recommend/i }).click()
-  await expect(page.getByText('What are you building?')).toBeVisible()
+  await page.getByRole('button', { name: /^🎯 Recommend$/ }).click()
+  await expect(page.getByText("Describe what you're building")).toBeVisible({ timeout: 90_000 })
 }
 
 /** Walk through the full wizard and return the result panel */
@@ -78,7 +78,7 @@ test.describe('Recommendation Wizard', () => {
     await expect(page.getByText('How important is quality?')).toBeVisible()
 
     await page.getByRole('button', { name: /← back/i }).click()
-    await expect(page.getByText('What are you building?')).toBeVisible()
+    await expect(page.getByText("Describe what you're building")).toBeVisible()
   })
 
   test('step 2 shows budget slider and defaults to no limit', async ({ page }) => {
@@ -275,7 +275,7 @@ test.describe('Wizard UX', () => {
     await getRecommendation(page, 'Coding', 'Good')
 
     await page.getByRole('button', { name: /start over/i }).click()
-    await expect(page.getByText('What are you building?')).toBeVisible()
+    await expect(page.getByText("Describe what you're building")).toBeVisible()
   })
 
   test('error state shown when backend is unavailable', async ({ page }) => {

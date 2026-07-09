@@ -1,7 +1,7 @@
 'use client'
 import { useState, useTransition } from 'react'
 import type { RecommendationResult, AlternativeAlert, UseCase } from '../../types/models'
-import { USE_CASES, PERSONAS } from '../../types/models'
+import { USE_CASES, PERSONAS, CHINA_PROVIDERS, CHINA_WARNING } from '../../types/models'
 import { fetchRecommendation, fetchNlRecommendation, fetchAlternative } from '../../lib/api'
 import { ProviderBadge } from '../shared/ProviderBadge'
 import { SpeedBadge } from '../shared/SpeedBadge'
@@ -278,6 +278,12 @@ export function RecommendationWizard() {
             </div>
 
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{result.reasoning}</p>
+
+            {CHINA_PROVIDERS.has(result.topPick.providerId) && (
+              <div className="mb-5 bg-amber-50 dark:bg-amber-950 border border-amber-300 dark:border-amber-700 rounded-lg px-4 py-2.5 text-xs text-amber-800 dark:text-amber-300">
+                ⚠️ {CHINA_WARNING}
+              </div>
+            )}
 
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">

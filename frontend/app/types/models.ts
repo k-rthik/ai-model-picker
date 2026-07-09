@@ -90,6 +90,19 @@ export interface NlRecommendation {
   result: RecommendationResult
 }
 
+/**
+ * Providers headquartered in China. Their hosted APIs may process data under
+ * Chinese jurisdiction — flagged so users can weigh data-residency concerns.
+ * (Open-weight models from these labs self-hosted via Ollama are unaffected.)
+ */
+export const CHINA_PROVIDERS = new Set([
+  'alibaba', 'baidu', 'bytedance', 'bytedance-seed', 'deepseek', 'kwaipilot',
+  'minimax', 'moonshotai', 'qwen', 'stepfun', 'tencent', 'xiaomi', 'z-ai',
+])
+
+export const CHINA_WARNING =
+  'Chinese company — hosted API may process data under Chinese jurisdiction. Review data-residency requirements before sending sensitive data.'
+
 export const PERSONAS: { id: string; label: string; description: string; icon: string }[] = [
   { id: 'SOLO_HACKER', label: 'Solo hacker',  description: 'Cheapest API that works',       icon: '👨‍💻' },
   { id: 'STARTUP_MVP', label: 'Startup MVP',  description: 'Optimize for shipping speed',   icon: '🚀' },
