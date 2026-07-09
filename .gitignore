@@ -21,3 +21,4 @@ frontend/out/
 frontend/*.tsbuildinfo
 .vercel
 .env*
+linkedin-post.md
