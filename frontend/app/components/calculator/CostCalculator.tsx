@@ -5,7 +5,7 @@ import type { CostProjection } from '../../types/models'
 import { fetchCostProjections } from '../../lib/api'
 
 const CHART_TOP_N = 15
-const TABLE_TOP_N = 30
+const PAGE_SIZE = 25
 
 // Palette-validated single hue (magnitude chart — identity lives in the labels)
 const BAR_HEX = { light: '#2563eb', dark: '#3b82f6' }
@@ -25,6 +25,7 @@ export function CostCalculator() {
   const [showBatch,    setShowBatch]    = useState(false)
   const [isPending,    startTransition] = useTransition()
   const [error,        setError]        = useState<string | null>(null)
+  const [page,         setPage]         = useState(0)
 
   const isDark = typeof document !== 'undefined' &&
     document.documentElement.classList.contains('dark')
@@ -35,6 +36,7 @@ export function CostCalculator() {
       try {
         const data = await fetchCostProjections(inputTokens, outputTokens)
         setProjections(data)
+        setPage(0)
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Failed to fetch cost projections')
       }
@@ -51,7 +53,9 @@ export function CostCalculator() {
     isBatch: showBatch && p.hasBatchDiscount,
   }))
 
-  const tableRows = paid.slice(0, TABLE_TOP_N)
+  const pageCount = Math.max(1, Math.ceil(paid.length / PAGE_SIZE))
+  const safePage  = Math.min(page, pageCount - 1)
+  const tableRows = paid.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE)
 
   return (
     <div className="space-y-6">
@@ -178,9 +182,9 @@ export function CostCalculator() {
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {tableRows.map((p, i) => (
-                  <tr key={p.modelId} className={i === 0 ? 'bg-green-50 dark:bg-green-950' : ''}>
+                  <tr key={p.modelId} className={safePage === 0 && i === 0 ? 'bg-green-50 dark:bg-green-950' : ''}>
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
-                      {i === 0 && <span className="text-xs text-green-600 dark:text-green-400 font-bold mr-1">CHEAPEST PAID</span>}
+                      {safePage === 0 && i === 0 && <span className="text-xs text-green-600 dark:text-green-400 font-bold mr-1">CHEAPEST PAID</span>}
                       {p.modelName}
                     </td>
                     <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-300">{formatCost(p.inputCost)}</td>
@@ -193,9 +197,25 @@ export function CostCalculator() {
                 ))}
               </tbody>
             </table>
-            <div className="px-4 py-3 text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
-              Showing the {Math.min(TABLE_TOP_N, paid.length)} cheapest paid models of {paid.length}
-              {freeCount > 0 && ` · plus ${freeCount} free/self-hosted models (Ollama, free tiers) at $0 — see the Compare tab for those`}
+            <div className="px-4 py-3 flex items-center justify-between gap-4 text-xs bg-gray-50 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
+              <button
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={safePage === 0}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-medium disabled:opacity-40 hover:border-gray-400 transition-colors"
+              >
+                ← Prev
+              </button>
+              <span className="text-gray-500 dark:text-gray-400 text-center">
+                Page {safePage + 1} of {pageCount} · rows {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, paid.length)} of {paid.length} paid models
+                {freeCount > 0 && ` · ${freeCount} free/self-hosted at $0 — see Compare tab`}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(pageCount - 1, p + 1))}
+                disabled={safePage >= pageCount - 1}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-medium disabled:opacity-40 hover:border-gray-400 transition-colors"
+              >
+                Next →
+              </button>
             </div>
           </div>
         </>
