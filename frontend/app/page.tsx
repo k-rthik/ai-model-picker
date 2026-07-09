@@ -14,12 +14,37 @@ export default function Home() {
   const [models,   setModels]   = useState<AiModel[]>([])
   const [loading,  setLoading]  = useState(true)
   const [error,    setError]    = useState<string | null>(null)
+  const [waking,   setWaking]   = useState(false)
 
+  // Free-tier hosting spins the backend down when idle; the first request can
+  // take up to a minute. Retry while it boots and tell the user what's happening.
   useEffect(() => {
-    fetchModels()
-      .then(setModels)
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false))
+    let cancelled = false
+    const wakeTimer = setTimeout(() => setWaking(true), 3000)
+
+    const load = (attempt: number) => {
+      fetchModels()
+        .then(m => {
+          if (cancelled) return
+          setModels(m)
+          setLoading(false)
+          setWaking(false)
+        })
+        .catch(e => {
+          if (cancelled) return
+          if (attempt < 12) {
+            setWaking(true)
+            setTimeout(() => load(attempt + 1), 6000)
+          } else {
+            setError(e instanceof Error ? e.message : 'Failed to load models')
+            setLoading(false)
+            setWaking(false)
+          }
+        })
+    }
+    load(1)
+
+    return () => { cancelled = true; clearTimeout(wakeTimer) }
   }, [])
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
@@ -87,12 +112,28 @@ export default function Home() {
           </div>
         )}
 
+        {loading && (
+          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-6 text-blue-800 dark:text-blue-300 text-sm flex items-center gap-3">
+            <span className="animate-spin text-lg">⏳</span>
+            {waking ? (
+              <span>
+                <strong>The machine is waking up…</strong> Free hosting naps when idle — the
+                backend can take up to a minute to come alive. Hang tight, this page will
+                load automatically.
+              </span>
+            ) : (
+              <span>Loading models…</span>
+            )}
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl p-6 text-red-700 dark:text-red-400 text-sm">
             <strong>Backend not reachable:</strong> {error}
             <br />
             <span className="text-xs text-red-500 mt-1 block">
-              Start the Spring Boot backend: <code className="bg-red-100 dark:bg-red-900 px-1 rounded">./gradlew bootRun</code> from the <code>backend/</code> directory.
+              The server may still be waking up — try refreshing in a minute.
+              (Running locally? Start the backend: <code className="bg-red-100 dark:bg-red-900 px-1 rounded">./gradlew bootRun</code>)
             </span>
           </div>
         )}
