@@ -21,7 +21,7 @@ public class RecommendController {
 
     public record NlResponse(
             String useCase, int quality, double maxBudget, String persona, String personaLabel,
-            RecommendationEngine.RecommendationResult result) {}
+            boolean excludeChina, RecommendationEngine.RecommendationResult result) {}
 
     public record PersonaInfo(String id, String label, String description) {}
 
@@ -30,19 +30,24 @@ public class RecommendController {
             @RequestParam String useCase,
             @RequestParam(defaultValue = "3") int quality,
             @RequestParam(defaultValue = "0") double maxBudget,
-            @RequestParam(required = false) String persona) {
-        return engine.recommend(useCase, quality, maxBudget, Persona.fromString(persona));
+            @RequestParam(required = false) String persona,
+            @RequestParam(defaultValue = "false") boolean excludeChina) {
+        return engine.recommend(useCase, quality, maxBudget, Persona.fromString(persona), excludeChina);
     }
 
     /** GET /api/recommend/nl?q=cheap+chatbot+over+our+docs — free-text recommendation. */
     @GetMapping("/nl")
-    public Mono<NlResponse> recommendFromText(@RequestParam String q) {
+    public Mono<NlResponse> recommendFromText(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "false") boolean excludeChina) {
         NlQueryParser.Parsed p = NlQueryParser.parse(q);
-        return engine.recommend(p.useCase(), p.quality(), p.maxBudget(), p.persona())
+        boolean skipChina = excludeChina || p.excludeChina();
+        return engine.recommend(p.useCase(), p.quality(), p.maxBudget(), p.persona(), skipChina)
                 .map(result -> new NlResponse(
                         p.useCase(), p.quality(), p.maxBudget(),
                         p.persona() != null ? p.persona().name() : null,
                         p.persona() != null ? p.persona().label : null,
+                        skipChina,
                         result));
     }
 

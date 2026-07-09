@@ -1,7 +1,7 @@
 'use client'
 import { useState, useMemo, useEffect } from 'react'
 import type { AiModel, UseCase } from '../../types/models'
-import { USE_CASES } from '../../types/models'
+import { USE_CASES, CHINA_PROVIDERS } from '../../types/models'
 import { fetchUseCaseLeaderboard } from '../../lib/api'
 import { ProviderBadge } from '../shared/ProviderBadge'
 import { SpeedBadge } from '../shared/SpeedBadge'
@@ -20,6 +20,7 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
   const [filterUseCase,  setFilterUseCase]  = useState<UseCase | 'all'>('all')
 
   const [scores, setScores] = useState<Record<string, number> | null>(null)
+  const [hideChina, setHideChina] = useState(false)
 
   const providers = useMemo(() => ['all', ...Array.from(new Set(models.map(m => m.providerId).filter(Boolean)))], [models])
 
@@ -43,6 +44,7 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
   const sorted = useMemo(() => {
     let list = [...models]
     if (filterProvider !== 'all') list = list.filter(m => m.providerId === filterProvider)
+    if (hideChina) list = list.filter(m => !CHINA_PROVIDERS.has(m.providerId))
     // Unscored models (embeddings, image/audio, etc.) drop out when comparing a use case
     if (scores) list = list.filter(m => scores[m.id] !== undefined)
 
@@ -103,6 +105,16 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
             <option key={uc.id} value={uc.id}>{uc.icon} {uc.label}</option>
           ))}
         </select>
+
+        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={hideChina}
+            onChange={e => setHideChina(e.target.checked)}
+            className="accent-amber-600"
+          />
+          ⚠️ Hide Chinese providers
+        </label>
       </div>
 
       {/* Table */}

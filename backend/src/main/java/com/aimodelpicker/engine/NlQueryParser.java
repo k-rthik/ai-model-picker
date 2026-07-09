@@ -14,7 +14,11 @@ import java.util.regex.Pattern;
  */
 public final class NlQueryParser {
 
-    public record Parsed(String useCase, int quality, double maxBudget, Persona persona) {}
+    public record Parsed(String useCase, int quality, double maxBudget, Persona persona,
+                         boolean excludeChina) {}
+
+    private static final Pattern EXCLUDE_CHINA = Pattern.compile(
+            "\\b(no|avoid|exclude|skip|without|not?)\\s+chin(a|ese)\\b|non.?chinese|western only|us.based only");
 
     // Ordered: more specific intents win over generic ones on equal hits
     private static final Map<String, Pattern> USE_CASE_KEYWORDS = new LinkedHashMap<>();
@@ -72,6 +76,8 @@ public final class NlQueryParser {
         Matcher b = BUDGET.matcher(q);
         if (b.find()) maxBudget = Double.parseDouble(b.group(1));
 
-        return new Parsed(useCase, quality, maxBudget, persona);
+        boolean excludeChina = EXCLUDE_CHINA.matcher(q).find();
+
+        return new Parsed(useCase, quality, maxBudget, persona, excludeChina);
     }
 }

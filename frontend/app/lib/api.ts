@@ -23,12 +23,15 @@ export const fetchArenaLeaderboard = ()              => get<ArenaScore[]>('/mode
 export const fetchUseCaseLeaderboard = (uc: UseCase) => get<UseCaseScore[]>(`/models/leaderboard/use-case/${uc}`)
 
 // Recommendation
-export const fetchRecommendation = (useCase: UseCase, quality: number, maxBudget: number, persona?: string) =>
+export const fetchRecommendation = (useCase: UseCase, quality: number, maxBudget: number,
+                                    persona?: string, excludeChina?: boolean) =>
   get<RecommendationResult>(
-    `/recommend?useCase=${useCase}&quality=${quality}&maxBudget=${maxBudget}${persona ? `&persona=${persona}` : ''}`)
+    `/recommend?useCase=${useCase}&quality=${quality}&maxBudget=${maxBudget}` +
+    `${persona ? `&persona=${persona}` : ''}${excludeChina ? '&excludeChina=true' : ''}`)
 
-export const fetchNlRecommendation = (q: string) =>
-  get<NlRecommendation>(`/recommend/nl?q=${encodeURIComponent(q)}`)
+export const fetchNlRecommendation = (q: string, excludeChina?: boolean) =>
+  get<NlRecommendation>(
+    `/recommend/nl?q=${encodeURIComponent(q)}${excludeChina ? '&excludeChina=true' : ''}`)
 
 export const fetchAlternative = (modelId: string, useCase: UseCase) =>
   get<{ present: boolean; value?: AlternativeAlert }>(`/recommend/alternative?modelId=${modelId}&useCase=${useCase}`)

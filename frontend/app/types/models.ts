@@ -87,6 +87,7 @@ export interface NlRecommendation {
   maxBudget: number
   persona: string | null
   personaLabel: string | null
+  excludeChina: boolean
   result: RecommendationResult
 }
 

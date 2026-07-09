@@ -42,6 +42,11 @@ public class RecommendationEngine {
     // Assumed input:output token mix for blending per-token prices
     private static final double INPUT_SHARE = 0.75;
 
+    /** Providers headquartered in China — excludable for data-residency reasons. */
+    public static final Set<String> CHINA_PROVIDERS = Set.of(
+            "alibaba", "baidu", "bytedance", "bytedance-seed", "deepseek", "kwaipilot",
+            "minimax", "moonshotai", "qwen", "stepfun", "tencent", "xiaomi", "z-ai");
+
     private final ModelRepository modelRepository;
     private final UseCaseScoreRepository useCaseScoreRepository;
 
@@ -61,24 +66,31 @@ public class RecommendationEngine {
     ) {}
 
     public Mono<RecommendationResult> recommend(String useCase, int qualityTier, double maxBudgetPer1M) {
-        return recommend(useCase, qualityTier, maxBudgetPer1M, null);
+        return recommend(useCase, qualityTier, maxBudgetPer1M, null, false);
+    }
+
+    public Mono<RecommendationResult> recommend(String useCase, int qualityTier,
+                                                double maxBudgetPer1M, Persona persona) {
+        return recommend(useCase, qualityTier, maxBudgetPer1M, persona, false);
     }
 
     /** Persona overrides quality tier and budget weighting, and hard-filters candidates. */
     public Mono<RecommendationResult> recommend(String useCase, int qualityTier,
-                                                double maxBudgetPer1M, Persona persona) {
+                                                double maxBudgetPer1M, Persona persona,
+                                                boolean excludeChina) {
         int tier = persona != null ? persona.qualityTier : Math.max(1, Math.min(qualityTier, 5));
 
         return modelRepository.findAll()
                 .collectList()
                 .flatMap(models -> useCaseScoreRepository.findByUseCase(useCase)
                         .collectList()
-                        .map(useCaseScores -> rank(models, useCaseScores, useCase, tier, maxBudgetPer1M, persona)));
+                        .map(useCaseScores -> rank(models, useCaseScores, useCase, tier,
+                                maxBudgetPer1M, persona, excludeChina)));
     }
 
     private RecommendationResult rank(List<AiModel> models, List<UseCaseScore> useCaseScores,
                                        String useCase, int qualityTier, double maxBudgetPer1M,
-                                       Persona persona) {
+                                       Persona persona, boolean excludeChina) {
         Map<String, Double> scoreMap = new HashMap<>();
         for (UseCaseScore s : useCaseScores) {
             scoreMap.put(s.getModelId(), s.getScore());
@@ -91,6 +103,7 @@ public class RecommendationEngine {
                 .filter(m -> scoreMap.containsKey(m.getId()))
                 .filter(m -> !HeuristicUseCaseScorer.isNonAssistant(m))
                 .filter(m -> persona == null || persona.accepts(m))
+                .filter(m -> !excludeChina || !CHINA_PROVIDERS.contains(m.getProviderId()))
                 .toList();
 
         List<AiModel> candidates = scored.stream()

@@ -50,5 +50,14 @@ class NlQueryParserTest {
         assertEquals(3, p.quality());
         assertEquals(0.0, p.maxBudget());
         assertNull(p.persona());
+        assertFalse(p.excludeChina());
+    }
+
+    @Test
+    void detectsChinaExclusion() {
+        assertTrue(NlQueryParser.parse("coding assistant, no chinese models").excludeChina());
+        assertTrue(NlQueryParser.parse("summarizer but avoid china providers").excludeChina());
+        assertTrue(NlQueryParser.parse("non-chinese rag model").excludeChina());
+        assertFalse(NlQueryParser.parse("translate chinese documents").excludeChina());
     }
 }

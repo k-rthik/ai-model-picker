@@ -141,6 +141,26 @@ class RecommendationEngineTest {
     }
 
     @Test
+    void excludeChinaFiltersChineseProviders() {
+        AiModel chinese = model("deepseek-v3", 0.3, 0.4);
+        chinese.setProviderId("deepseek");
+        AiModel western = model("gpt-x", 2.0, 8.0);
+        western.setProviderId("openai");
+        stub(List.of(chinese, western), List.of(
+                score("deepseek-v3", "coding", 9.0),
+                score("gpt-x", "coding", 8.0)));
+
+        var with = engine.recommend("coding", 3, 0, null, false).block();
+        var without = engine.recommend("coding", 3, 0, null, true).block();
+
+        assertNotNull(with);
+        assertNotNull(without);
+        assertEquals("deepseek-v3", with.topPick().getId());
+        assertEquals("gpt-x", without.topPick().getId());
+        assertNull(without.runnerUp());
+    }
+
+    @Test
     void alternativeAlertSkipsMuchWeakerModels() {
         AiModel pricey = model("pricey", 10.0, 40.0);
         AiModel weakBargain = model("weak-bargain", 0.1, 0.4);

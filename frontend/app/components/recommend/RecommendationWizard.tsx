@@ -13,6 +13,7 @@ export function RecommendationWizard() {
   const [quality,   setQuality]   = useState(3)
   const [maxBudget, setMaxBudget] = useState(0)
   const [persona,   setPersona]   = useState<string | null>(null)
+  const [skipChina, setSkipChina] = useState(false)
   const [nlQuery,   setNlQuery]   = useState('')
   const [interpretation, setInterpretation] = useState<string | null>(null)
   const [result,    setResult]    = useState<RecommendationResult | null>(null)
@@ -41,8 +42,8 @@ export function RecommendationWizard() {
     setError(null)
     startTransition(async () => {
       try {
-        const rec = await fetchRecommendation(useCase, quality, maxBudget)
-        await finish(rec, useCase, null)
+        const rec = await fetchRecommendation(useCase, quality, maxBudget, undefined, skipChina)
+        await finish(rec, useCase, skipChina ? 'Chinese providers excluded' : null)
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Failed to get recommendation')
       }
@@ -55,9 +56,10 @@ export function RecommendationWizard() {
     setUseCase(uc)
     startTransition(async () => {
       try {
-        const rec = await fetchRecommendation(uc, 3, 0, p)
+        const rec = await fetchRecommendation(uc, 3, 0, p, skipChina)
         const label = PERSONAS.find(x => x.id === p)?.label ?? p
-        await finish(rec, uc, `${label} preset · ${USE_CASES.find(u => u.id === uc)?.label ?? uc}`)
+        await finish(rec, uc, `${label} preset · ${USE_CASES.find(u => u.id === uc)?.label ?? uc}`
+          + (skipChina ? ' · Chinese providers excluded' : ''))
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Failed to get recommendation')
       }
@@ -69,13 +71,14 @@ export function RecommendationWizard() {
     setError(null)
     startTransition(async () => {
       try {
-        const nl = await fetchNlRecommendation(nlQuery.trim())
+        const nl = await fetchNlRecommendation(nlQuery.trim(), skipChina)
         setUseCase(nl.useCase)
         const parts = [
           `use case: ${USE_CASES.find(u => u.id === nl.useCase)?.label ?? nl.useCase}`,
           `quality ${nl.quality}/5`,
           nl.maxBudget > 0 ? `budget $${nl.maxBudget}/1M` : null,
           nl.personaLabel ? `${nl.personaLabel} preset` : null,
+          nl.excludeChina ? 'Chinese providers excluded' : null,
         ].filter(Boolean)
         await finish(nl.result, nl.useCase, `Understood — ${parts.join(' · ')}`)
       } catch (e: unknown) {
@@ -86,7 +89,7 @@ export function RecommendationWizard() {
 
   const reset = () => {
     setStep(0); setUseCase(null); setQuality(3); setMaxBudget(0); setPersona(null)
-    setNlQuery(''); setInterpretation(null); setResult(null); setAlert(null)
+    setSkipChina(false); setNlQuery(''); setInterpretation(null); setResult(null); setAlert(null)
   }
 
   return (
@@ -137,6 +140,15 @@ export function RecommendationWizard() {
                 {isPending ? '…' : 'Recommend →'}
               </button>
             </div>
+            <label className="flex items-center gap-2 mt-3 text-xs text-gray-600 dark:text-gray-400 cursor-pointer w-fit">
+              <input
+                type="checkbox"
+                checked={skipChina}
+                onChange={e => setSkipChina(e.target.checked)}
+                className="accent-amber-600"
+              />
+              ⚠️ Skip Chinese providers <span className="text-gray-400 dark:text-gray-500">(applies to all flows below too)</span>
+            </label>
           </div>
 
           {/* Personas */}
