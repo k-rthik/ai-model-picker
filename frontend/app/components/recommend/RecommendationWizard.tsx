@@ -6,6 +6,7 @@ import { fetchRecommendation, fetchNlRecommendation, fetchAlternative } from '..
 import { ProviderBadge } from '../shared/ProviderBadge'
 import { SpeedBadge } from '../shared/SpeedBadge'
 import { BetterAlternativeBanner } from '../alerts/BetterAlternativeBanner'
+import { ScoreMethodology } from '../shared/ScoreMethodology'
 
 export function RecommendationWizard() {
   const [step,      setStep]      = useState(0)
@@ -329,6 +330,8 @@ export function RecommendationWizard() {
               </div>
             </div>
           )}
+
+          <ScoreMethodology />
 
           <button
             onClick={reset}

@@ -5,6 +5,7 @@ import { USE_CASES, CHINA_PROVIDERS } from '../../types/models'
 import { fetchUseCaseLeaderboard } from '../../lib/api'
 import { ProviderBadge } from '../shared/ProviderBadge'
 import { SpeedBadge } from '../shared/SpeedBadge'
+import { ScoreMethodology } from '../shared/ScoreMethodology'
 
 type SortKey = 'name' | 'inputPricePer1m' | 'outputPricePer1m' | 'contextWindow' | 'speedTier' | 'score'
 
@@ -116,6 +117,8 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
           ⚠️ Hide Chinese providers
         </label>
       </div>
+
+      {scores && <div className="mb-4"><ScoreMethodology /></div>}
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
