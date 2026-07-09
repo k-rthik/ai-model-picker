@@ -8,6 +8,23 @@ import { SpeedBadge } from '../shared/SpeedBadge'
 import { BetterAlternativeBanner } from '../alerts/BetterAlternativeBanner'
 import { ScoreMethodology } from '../shared/ScoreMethodology'
 
+/** Lab-notebook section tile: index label + accent top border. */
+function LabTile({ code, title, hint, children }: {
+  code: string; title: string; hint?: string; children: React.ReactNode
+}) {
+  return (
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 border-t-2 border-t-blue-500/70 p-6 shadow-sm">
+      <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-1.5">
+        {code}
+      </div>
+      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{title}</h3>
+      {hint && <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{hint}</p>}
+      {!hint && <div className="mb-3" />}
+      {children}
+    </div>
+  )
+}
+
 export function RecommendationWizard() {
   const [step,      setStep]      = useState(0)
   const [useCase,   setUseCase]   = useState<UseCase | null>(null)
@@ -142,8 +159,7 @@ export function RecommendationWizard() {
       {step === 0 && (
         <div className="space-y-4">
           {/* Natural language input */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Describe what you&apos;re building</h3>
+          <LabTile code="Method 01 · Free text" title="Describe what you're building">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -170,14 +186,11 @@ export function RecommendationWizard() {
               />
               ⚠️ Skip Chinese providers <span className="text-gray-400 dark:text-gray-500">(applies to all flows below too)</span>
             </label>
-          </div>
+          </LabTile>
 
           {/* Profession */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Or pick your profession</h3>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
-              Presets a typical task, quality bar, and — for regulated professions — compliance-grade providers.
-            </p>
+          <LabTile code="Method 02 · By profession" title="Or pick your profession"
+                   hint="Presets a typical task, quality bar, and — for regulated professions — compliance-grade providers.">
             <select
               value={profession}
               disabled={isPending}
@@ -189,15 +202,12 @@ export function RecommendationWizard() {
                 <option key={p.id} value={p.id}>{p.icon} {p.label} — {p.task}</option>
               ))}
             </select>
-          </div>
+          </LabTile>
 
           {/* Personas */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Or pick a preset persona</h3>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
-              {persona ? 'Now choose your use case below — quality and budget are preset.' : 'Presets answer the quality and budget questions for you.'}
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+          <LabTile code="Method 03 · By persona" title="Or pick a preset persona"
+                   hint={persona ? 'Now choose your use case in Method 04 below — quality and budget are preset.' : 'Presets answer the quality and budget questions for you.'}>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               {PERSONAS.map(p => (
                 <button
                   key={p.id}
@@ -213,10 +223,11 @@ export function RecommendationWizard() {
                 </button>
               ))}
             </div>
+          </LabTile>
 
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              {persona ? 'What are you building?' : 'Or choose your use case manually'}
-            </h3>
+          <LabTile code="Method 04 · Manual selection"
+                   title={persona ? 'What are you building?' : 'Or choose your use case manually'}
+                   hint={persona ? `Persona locked in: ${PERSONAS.find(x => x.id === persona)?.label}. Pick a use case to get the result.` : 'Walks you through quality and budget in two quick steps.'}>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {USE_CASES.map(uc => (
                 <button
@@ -237,7 +248,7 @@ export function RecommendationWizard() {
                 </button>
               ))}
             </div>
-          </div>
+          </LabTile>
         </div>
       )}
 
