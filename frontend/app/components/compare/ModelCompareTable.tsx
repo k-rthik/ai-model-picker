@@ -22,6 +22,7 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
 
   const [scores, setScores] = useState<Record<string, number> | null>(null)
   const [hideChina, setHideChina] = useState(false)
+  const [search, setSearch] = useState('')
 
   const providers = useMemo(() => ['all', ...Array.from(new Set(models.map(m => m.providerId).filter(Boolean)))], [models])
 
@@ -46,6 +47,14 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
     let list = [...models]
     if (filterProvider !== 'all') list = list.filter(m => m.providerId === filterProvider)
     if (hideChina) list = list.filter(m => !CHINA_PROVIDERS.has(m.providerId))
+    const q = search.trim().toLowerCase()
+    if (q) {
+      list = list.filter(m =>
+        m.name.toLowerCase().includes(q) ||
+        m.id.toLowerCase().includes(q) ||
+        m.providerId.toLowerCase().includes(q) ||
+        (m.notes ?? '').toLowerCase().includes(q))
+    }
     // Unscored models (embeddings, image/audio, etc.) drop out when comparing a use case
     if (scores) list = list.filter(m => scores[m.id] !== undefined)
 
@@ -66,7 +75,7 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
       return 0
     })
     return list
-  }, [models, sortKey, sortAsc, filterProvider, scores])
+  }, [models, sortKey, sortAsc, filterProvider, scores, hideChina, search])
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortAsc(v => !v)
@@ -85,7 +94,14 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
   return (
     <div>
       {/* Filters */}
-      <div className="flex gap-3 mb-4 flex-wrap">
+      <div className="flex gap-3 mb-4 flex-wrap items-center">
+        <input
+          type="search"
+          placeholder="🔍 Filter models… (name, provider, notes)"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-72 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
         <select
           className="text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           value={filterProvider}
@@ -116,6 +132,10 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
           />
           ⚠️ Hide Chinese providers
         </label>
+
+        <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
+          {sorted.length} of {models.length} models
+        </span>
       </div>
 
       {scores && <div className="mb-4"><ScoreMethodology /></div>}
