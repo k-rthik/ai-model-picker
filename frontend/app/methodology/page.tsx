@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { BrandMark } from '../components/shared/BrandMark'
 
 export const metadata = { title: 'Methodology — AI Model Picker' }
 
@@ -8,7 +9,7 @@ export default function MethodologyPage() {
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <span className="text-2xl">🤖</span>
+            <BrandMark className="w-8 h-8" />
             <span className="font-bold text-gray-900 dark:text-gray-100">AI Model Picker</span>
           </Link>
           <Link href="/" className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
