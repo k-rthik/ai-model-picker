@@ -7,6 +7,7 @@ import { ProviderBadge } from '../shared/ProviderBadge'
 import { SpeedBadge } from '../shared/SpeedBadge'
 import { ScoreMethodology } from '../shared/ScoreMethodology'
 import { LabTile } from '../shared/LabTile'
+import { ChinaFilterToggle } from '../shared/ChinaFilterToggle'
 
 type SortKey = 'name' | 'inputPricePer1m' | 'outputPricePer1m' | 'contextWindow' | 'speedTier' | 'score'
 
@@ -134,15 +135,7 @@ export function ModelCompareTable({ models, onSelectModel }: Props) {
           ))}
         </select>
 
-        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={hideChina}
-            onChange={e => setHideChina(e.target.checked)}
-            className="accent-amber-600"
-          />
-          ⚠️ Hide Chinese providers
-        </label>
+        <ChinaFilterToggle enabled={hideChina} onChange={setHideChina} />
 
         <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
           {sorted.length} of {models.length} models

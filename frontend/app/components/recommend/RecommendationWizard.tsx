@@ -8,6 +8,7 @@ import { SpeedBadge } from '../shared/SpeedBadge'
 import { BetterAlternativeBanner } from '../alerts/BetterAlternativeBanner'
 import { ScoreMethodology } from '../shared/ScoreMethodology'
 import { LabTile } from '../shared/LabTile'
+import { ChinaFilterToggle } from '../shared/ChinaFilterToggle'
 
 export function RecommendationWizard() {
   const [step,      setStep]      = useState(0)
@@ -162,15 +163,10 @@ export function RecommendationWizard() {
                 {isPending ? '…' : 'Recommend →'}
               </button>
             </div>
-            <label className="flex items-center gap-2 mt-3 text-xs text-gray-600 dark:text-gray-400 cursor-pointer w-fit">
-              <input
-                type="checkbox"
-                checked={skipChina}
-                onChange={e => setSkipChina(e.target.checked)}
-                className="accent-amber-600"
-              />
-              ⚠️ Skip Chinese providers <span className="text-gray-400 dark:text-gray-500">(applies to all flows below too)</span>
-            </label>
+            <div className="flex items-center gap-2 mt-3">
+              <ChinaFilterToggle enabled={skipChina} onChange={setSkipChina} />
+              <span className="text-xs text-gray-400 dark:text-gray-500">Chinese providers (applies to all flows below too)</span>
+            </div>
           </LabTile>
 
           {/* Profession */}
