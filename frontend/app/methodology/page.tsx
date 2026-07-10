@@ -74,6 +74,18 @@ export default function MethodologyPage() {
           requires your own agreement — such as a BAA — with that provider.
         </Section>
 
+        <Section n="🇨🇳" title="Why the Chinese-provider filter exists">
+          Several Chinese labs ship models that rank among the best in the world — the arena data
+          in these scores reflects that, and this tool recommends them on merit. The optional
+          exclusion filter exists because of a <strong>trust deficit</strong> that many users and
+          organizations carry toward data processed under Chinese jurisdiction: broad
+          data-access laws, limited legal recourse for foreign customers, and governance that is
+          hard to independently verify. That concern applies to the <em>hosted APIs</em>, not to
+          the models themselves — open-weight models from these labs, self-hosted on your own
+          hardware, sit entirely outside it. The filter lets each user apply their own risk
+          posture; the flag badge simply discloses provenance so the choice is informed.
+        </Section>
+
         <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-xl p-5 text-sm text-amber-800 dark:text-amber-300">
           <strong>Honest caveat:</strong> these scores are informed guidance, not an exhaustive benchmark
           suite. The curated layer reflects editorial judgment; the arena layer reflects aggregate human

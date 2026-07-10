@@ -13,7 +13,9 @@ export function ChinaFilterToggle({ enabled, onChange, className = '' }: {
       role="switch"
       aria-checked={enabled}
       aria-label="Exclude Chinese providers"
-      title={enabled ? 'Chinese providers excluded — click to include' : 'Click to exclude Chinese providers'}
+      title={enabled
+        ? 'Chinese providers excluded — click to include'
+        : 'Exclude Chinese providers — for users whose data-governance requirements rule out Chinese jurisdiction (trust deficit around data-access laws)'}
       onClick={() => onChange(!enabled)}
       className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border text-sm transition-colors
         ${enabled

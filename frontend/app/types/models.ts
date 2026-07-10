@@ -102,7 +102,7 @@ export const CHINA_PROVIDERS = new Set([
 ])
 
 export const CHINA_WARNING =
-  'Chinese company — hosted API may process data under Chinese jurisdiction. Review data-residency requirements before sending sensitive data.'
+  'Chinese company — hosted API may process data under Chinese jurisdiction. Many organizations carry a trust deficit here: data-access laws and limited legal recourse make governance hard to verify. Review data-residency requirements before sending sensitive data.'
 
 /**
  * Profession presets: curated defaults mapped onto the existing engine —
