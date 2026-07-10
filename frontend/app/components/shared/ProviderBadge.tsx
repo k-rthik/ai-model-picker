@@ -14,9 +14,9 @@ export function ProviderBadge({ provider }: { provider: string }) {
       {chinaFlag && (
         <span
           title={CHINA_WARNING}
-          className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium border bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700 cursor-help"
+          className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950 dark:border-amber-700 cursor-help"
         >
-          ⚠️ CN
+          <span className="text-sm leading-none">🇨🇳</span>
         </span>
       )}
     </span>
