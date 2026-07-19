@@ -76,6 +76,9 @@ class HeuristicUseCaseScorerTest {
                 model("google-gemini-2-5-flash-image", 32_768, Map.of())));
         assertTrue(HeuristicUseCaseScorer.isNonAssistant(
                 model("meta-llama-llama-guard-4-12b", 128_000, Map.of())));
+        // meta-router, not a model — free pricing would let it win budget tiers
+        assertTrue(HeuristicUseCaseScorer.isNonAssistant(
+                model("openrouter-auto-beta", 2_000_000, Map.of())));
         assertFalse(HeuristicUseCaseScorer.isNonAssistant(
                 model("anthropic-claude-sonnet-4-6", 1_000_000, Map.of())));
     }

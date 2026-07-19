@@ -40,7 +40,7 @@ public class HeuristicUseCaseScorer {
 
     /** Models that are not general-purpose text assistants: never scored, never recommended. */
     public static final Pattern NON_ASSISTANT = Pattern.compile(
-            "embed|image|audio|lyria|voxtral|whisper|tts|guard|morph-v3|relace|switchpoint-router|openrouter-free");
+            "embed|image|audio|lyria|voxtral|whisper|tts|guard|morph-v3|relace|switchpoint-router|openrouter-free|openrouter-auto");
 
     private record Family(Pattern pattern, double base, Map<String, Double> deltas) {
         static Family of(String regex, double base) {
