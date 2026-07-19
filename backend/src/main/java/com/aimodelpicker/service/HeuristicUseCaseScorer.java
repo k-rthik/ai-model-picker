@@ -356,9 +356,8 @@ public class HeuristicUseCaseScorer {
                             scores.add(ucs);
                         }
                     }
-                    // concatMap: SQLite allows one writer; parallel upserts hit SQLITE_BUSY
                     return Flux.fromIterable(scores)
-                            .concatMap(useCaseScoreRepository::upsert)
+                            .flatMap(useCaseScoreRepository::upsert, 8)
                             .then(Mono.just(scores.size()));
                 });
     }

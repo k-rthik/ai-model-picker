@@ -18,10 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 WORKDIR /app
 COPY --from=build /build/build/libs/*.jar app.jar
 
-# SQLite lives here — mount a volume to persist models + scores
-RUN mkdir -p /app/data
-VOLUME /app/data
-
 EXPOSE 8080
 HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=5 \
     CMD curl -sf http://localhost:${PORT:-8080}/api/models > /dev/null || exit 1

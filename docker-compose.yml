@@ -6,10 +6,10 @@ services:
       # Host 8081 by default — 8080 tends to be taken by other local apps.
       # Must match the NEXT_PUBLIC_API_URL baked into the frontend build.
       - "${BACKEND_PORT:-8081}:8080"
-    volumes:
-      # Persists the SQLite catalog + scores; seeds from the local dev DB if present
-      - ./backend/data:/app/data
     environment:
+      # Atlas connection string incl. database name, e.g.
+      # mongodb+srv://user:pass@cluster.mongodb.net/ai_model_picker?appName=X
+      MONGODB_URI: ${MONGODB_URI:?set MONGODB_URI in .env or the shell}
       # Unset = admin endpoints open (local dev). Set to lock /api/admin/**.
       ADMIN_API_KEY: ${ADMIN_API_KEY:-}
     restart: unless-stopped

@@ -1,10 +1,14 @@
 package com.aimodelpicker.model;
 
 import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
+@Document("ingestion_log")
 public class IngestionLog {
-    private Long id;
+    @Id
+    private String id;
     private String source;
     private String status;
     private Integer modelsAdded;

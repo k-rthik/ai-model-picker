@@ -37,7 +37,7 @@ public class ScraperOrchestrator {
     @Scheduled(cron = "0 0 2 * * *", zone = "UTC")
     public void runDailyScrape() {
         log.info("Starting daily scrape + ingest job...");
-        // Sequential: ingest then scrape — concurrent writers deadlock SQLite
+        // Sequential: scrape name-matching needs the freshly ingested catalog
         ingestionOrchestrator.runAll()
                 .doOnNext(s -> log.info("Ingest [{}]: +{} ~{} skip{}", s.source(), s.added(), s.updated(), s.skipped()))
                 .then(runAllScrapers())

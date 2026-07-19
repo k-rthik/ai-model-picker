@@ -2,64 +2,40 @@ package com.aimodelpicker.repository;
 
 import com.aimodelpicker.model.ArenaScore;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 @Repository
 @RequiredArgsConstructor
 public class ArenaScoreRepository {
 
-    private final JdbcTemplate jdbc;
-
-    private static final RowMapper<ArenaScore> ROW_MAPPER = (rs, rowNum) -> {
-        ArenaScore a = new ArenaScore();
-        a.setId(rs.getLong("id"));
-        a.setModelId(rs.getString("model_id"));
-        a.setModelNameOnLeaderboard(rs.getString("model_name_on_leaderboard"));
-        a.setEloScore(rs.getInt("elo_score"));
-        a.setRankPosition(rs.getInt("rank_position"));
-        a.setVotes(rs.getInt("votes"));
-        a.setCategory(rs.getString("category"));
-        a.setScrapedAt(rs.getString("scraped_at"));
-        return a;
-    };
+    private final ReactiveMongoTemplate mongo;
 
     public Flux<ArenaScore> findByModelId(String modelId) {
-        return Mono.fromCallable(() -> jdbc.query(
-                        "SELECT * FROM arena_scores WHERE model_id = ?", ROW_MAPPER, modelId))
-                .flatMapMany(Flux::fromIterable)
-                .subscribeOn(Schedulers.boundedElastic());
+        return mongo.find(Query.query(Criteria.where("modelId").is(modelId)), ArenaScore.class);
     }
 
     public Flux<ArenaScore> findTopByElo(int limit) {
-        return Mono.fromCallable(() -> jdbc.query(
-                        "SELECT * FROM arena_scores ORDER BY elo_score DESC LIMIT ?", ROW_MAPPER, limit))
-                .flatMapMany(Flux::fromIterable)
-                .subscribeOn(Schedulers.boundedElastic());
+        return mongo.find(new Query().with(Sort.by(Sort.Direction.DESC, "eloScore")).limit(limit),
+                ArenaScore.class);
     }
 
-    /** Latest ELO per model and leaderboard category (max scraped_at row wins). */
+    /** Latest ELO per model and leaderboard category (max scrapedAt row wins). */
     public Flux<ArenaScore> findLatestPerModel() {
-        return Mono.fromCallable(() -> jdbc.query("""
-                        SELECT a.* FROM arena_scores a
-                        JOIN (SELECT model_id, category, MAX(scraped_at) AS ts
-                              FROM arena_scores GROUP BY model_id, category) l
-                          ON a.model_id = l.model_id AND a.category = l.category AND a.scraped_at = l.ts
-                        """, ROW_MAPPER))
-                .flatMapMany(Flux::fromIterable)
-                .subscribeOn(Schedulers.boundedElastic());
+        Aggregation agg = Aggregation.newAggregation(
+                Aggregation.sort(Sort.Direction.DESC, "scrapedAt"),
+                Aggregation.group("modelId", "category").first(Aggregation.ROOT).as("doc"),
+                Aggregation.replaceRoot("doc"));
+        return mongo.aggregate(agg, "arena_scores", ArenaScore.class);
     }
 
     public Mono<Integer> insert(ArenaScore score) {
-        return Mono.fromCallable(() -> jdbc.update(
-                        "INSERT INTO arena_scores (model_id, model_name_on_leaderboard, elo_score, rank_position, votes, category, scraped_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        score.getModelId(), score.getModelNameOnLeaderboard(),
-                        score.getEloScore(), score.getRankPosition(),
-                        score.getVotes(), score.getCategory(), score.getScrapedAt()))
-                .subscribeOn(Schedulers.boundedElastic());
+        return mongo.insert(score).thenReturn(1);
     }
 }

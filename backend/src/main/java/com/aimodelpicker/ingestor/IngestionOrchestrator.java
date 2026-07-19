@@ -33,7 +33,7 @@ public class IngestionOrchestrator {
 
     public record IngestionSummary(String source, int added, int updated, int skipped, String error) {}
 
-    /** Run all registered ingestors. Sequential: SQLite allows a single writer. */
+    /** Run all registered ingestors sequentially so summaries stay per-source. */
     public Flux<IngestionSummary> runAll() {
         return Flux.fromIterable(ingestors)
                 .concatMap(this::run);
