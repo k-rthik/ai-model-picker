@@ -291,8 +291,30 @@ public class HeuristicUseCaseScorer {
                     + "|weaver|hanami|goliath|dolphin|venice|remm-slerp|mytho", 5.0, ROLEPLAY)
     );
 
-    // How much a live Arena ELO (normalized to 0–10) counts vs. the curated tier
+    // Max share a live Arena ELO (normalized to 0–10) gets vs. the curated tier
     private static final double ARENA_BLEND = 0.5;
+
+    // Votes at which an arena rating earns full blend weight; fewer votes taper
+    // the weight logarithmically (a 50-vote rating is noise, a 5000-vote one isn't)
+    private static final int ARENA_FULL_CONFIDENCE_VOTES = 2_000;
+
+    /**
+     * Which arena.ai category board carries signal for each use case.
+     * agents → code: the agent board has no scrapeable data, and agentic
+     * ability tracks the coding board closely. Anything unmapped falls back
+     * to the general text board.
+     */
+    static final Map<String, String> USE_CASE_ARENA_CATEGORY = Map.of(
+            "coding", "code",
+            "agents", "code",
+            "vision", "vision",
+            "rag", "search",
+            "summarization", "document",
+            "long-context", "document",
+            "writing", "text",
+            "analysis", "text");
+
+    private static final String FALLBACK_CATEGORY = "text";
 
     private final ModelRepository modelRepository;
     private final UseCaseScoreRepository useCaseScoreRepository;
@@ -300,7 +322,8 @@ public class HeuristicUseCaseScorer {
 
     /**
      * Recomputes scores for all active models: curated family tier, blended
-     * 50/50 with live LMArena ELO where one exists, then metadata gates.
+     * per use case with the matching LMArena category board where one exists
+     * (vote count scales the blend weight), then metadata gates.
      * Returns rows written.
      */
     public Mono<Integer> recomputeAll() {
@@ -310,19 +333,25 @@ public class HeuristicUseCaseScorer {
                 .zipWith(arenaScoreRepository.findLatestPerModel().collectList())
                 .flatMap(tuple -> {
                     List<AiModel> models = tuple.getT1();
-                    Map<String, Double> arena10 = normalizeElo(tuple.getT2());
-                    if (!arena10.isEmpty()) {
-                        log.info("Blending {} LMArena ELO scores into use-case ratings", arena10.size());
+                    Map<String, Map<String, ArenaSignal>> arenaByCategory =
+                            normalizeEloByCategory(tuple.getT2());
+                    if (!arenaByCategory.isEmpty()) {
+                        arenaByCategory.forEach((cat, byModel) -> log.info(
+                                "Blending {} LMArena '{}' ELO scores into use-case ratings",
+                                byModel.size(), cat));
                     }
 
                     List<UseCaseScore> scores = new ArrayList<>();
                     for (AiModel model : models) {
                         if (isNonAssistant(model)) continue;
                         for (String useCase : USE_CASES) {
+                            ArenaSignal signal = arenaSignalFor(arenaByCategory, model.getId(), useCase);
                             UseCaseScore ucs = new UseCaseScore();
                             ucs.setModelId(model.getId());
                             ucs.setUseCase(useCase);
-                            ucs.setScore(score(model, useCase, arena10.get(model.getId())));
+                            ucs.setScore(signal != null
+                                    ? score(model, useCase, signal.score(), signal.votes())
+                                    : score(model, useCase, null));
                             ucs.setComputedAt(computedAt);
                             scores.add(ucs);
                         }
@@ -334,19 +363,49 @@ public class HeuristicUseCaseScorer {
                 });
     }
 
-    /** Maps the scraped ELO range linearly onto 2–10 (worst matched model → 2, best → 10). */
-    static Map<String, Double> normalizeElo(List<ArenaScore> arenaScores) {
-        Map<String, Double> out = new HashMap<>();
-        if (arenaScores.size() < 5) return out;   // too few points to define a scale
-        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
-        for (ArenaScore s : arenaScores) {
-            min = Math.min(min, s.getEloScore());
-            max = Math.max(max, s.getEloScore());
+    /** Normalized 0–10 arena rating plus the vote count backing it. */
+    record ArenaSignal(double score, int votes) {}
+
+    /** Category board mapped to the use case, falling back to the text board. */
+    static ArenaSignal arenaSignalFor(Map<String, Map<String, ArenaSignal>> arenaByCategory,
+                                      String modelId, String useCase) {
+        String category = USE_CASE_ARENA_CATEGORY.getOrDefault(useCase, FALLBACK_CATEGORY);
+        ArenaSignal signal = arenaByCategory.getOrDefault(category, Map.of()).get(modelId);
+        if (signal == null && !FALLBACK_CATEGORY.equals(category)) {
+            signal = arenaByCategory.getOrDefault(FALLBACK_CATEGORY, Map.of()).get(modelId);
         }
-        if (max <= min) return out;
+        return signal;
+    }
+
+    /**
+     * Maps each category's ELO range linearly onto 2–10 (worst matched model
+     * on that board → 2, best → 10). Boards with too few matched models to
+     * define a scale are dropped.
+     */
+    static Map<String, Map<String, ArenaSignal>> normalizeEloByCategory(List<ArenaScore> arenaScores) {
+        Map<String, List<ArenaScore>> byCategory = new HashMap<>();
         for (ArenaScore s : arenaScores) {
-            out.put(s.getModelId(), 2.0 + 8.0 * (s.getEloScore() - min) / (max - min));
+            String cat = s.getCategory() != null ? s.getCategory() : FALLBACK_CATEGORY;
+            byCategory.computeIfAbsent(cat, k -> new ArrayList<>()).add(s);
         }
+
+        Map<String, Map<String, ArenaSignal>> out = new HashMap<>();
+        byCategory.forEach((category, scores) -> {
+            if (scores.size() < 5) return;   // too few points to define a scale
+            int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+            for (ArenaScore s : scores) {
+                min = Math.min(min, s.getEloScore());
+                max = Math.max(max, s.getEloScore());
+            }
+            if (max <= min) return;
+            Map<String, ArenaSignal> byModel = new HashMap<>();
+            for (ArenaScore s : scores) {
+                double normalized = 2.0 + 8.0 * (s.getEloScore() - min) / (max - min);
+                int votes = s.getVotes() != null ? s.getVotes() : 0;
+                byModel.put(s.getModelId(), new ArenaSignal(normalized, votes));
+            }
+            out.put(category, byModel);
+        });
         return out;
     }
 
@@ -362,6 +421,15 @@ public class HeuristicUseCaseScorer {
 
     /** As above, with the curated base blended against a live Arena ELO (0–10) when present. */
     public static double score(AiModel model, String useCase, Double arena10) {
+        return score(model, useCase, arena10, null);
+    }
+
+    /**
+     * As above; when {@code votes} is known, low-vote arena ratings get
+     * proportionally less blend weight (0 or null votes = trust fully,
+     * for rows scraped before vote counts were captured).
+     */
+    public static double score(AiModel model, String useCase, Double arena10, Integer votes) {
         String id = model.getId().toLowerCase();
         double base = DEFAULT_BASE;
         Map<String, Double> deltas = Map.of();
@@ -374,7 +442,8 @@ public class HeuristicUseCaseScorer {
         }
         // Real-world ELO corrects the curated tier; gates below still apply
         if (arena10 != null) {
-            base = base * (1 - ARENA_BLEND) + arena10 * ARENA_BLEND;
+            double weight = ARENA_BLEND * arenaConfidence(votes);
+            base = base * (1 - weight) + arena10 * weight;
         }
         double score = base + deltas.getOrDefault(useCase, 0.0);
         score = applyMetadataGates(model, useCase, score);
@@ -411,6 +480,12 @@ public class HeuristicUseCaseScorer {
             default -> { }
         }
         return score;
+    }
+
+    /** 0–1 confidence in an arena rating from its vote count (log taper). */
+    static double arenaConfidence(Integer votes) {
+        if (votes == null || votes <= 0) return 1.0;   // vote count unknown
+        return Math.min(1.0, Math.log1p(votes) / Math.log1p(ARENA_FULL_CONFIDENCE_VOTES));
     }
 
     private static Map<String, Object> caps(AiModel model) {

@@ -1,9 +1,11 @@
 package com.aimodelpicker.service;
 
 import com.aimodelpicker.model.AiModel;
+import com.aimodelpicker.model.ArenaScore;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -82,6 +84,84 @@ class HeuristicUseCaseScorerTest {
     void unknownModelGetsConservativeDefault() {
         AiModel unknown = model("essentialai-rnj-1-instruct", 32_768, Map.of());
         assertEquals(5.0, HeuristicUseCaseScorer.score(unknown, "coding"));
+    }
+
+    private ArenaScore arena(String modelId, String category, int elo, int votes) {
+        ArenaScore s = new ArenaScore();
+        s.setModelId(modelId);
+        s.setCategory(category);
+        s.setEloScore(elo);
+        s.setVotes(votes);
+        return s;
+    }
+
+    @Test
+    void eloNormalizesPerCategoryNotAcrossBoards() {
+        // Code board runs 1300–1500, text board 1000–1200; the same model should
+        // land at the top of each board's own 2–10 scale, not a shared one.
+        List<ArenaScore> scores = new java.util.ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            scores.add(arena("code-" + i, "code", 1300 + i * 50, 1000));
+            scores.add(arena("text-" + i, "text", 1000 + i * 50, 1000));
+        }
+
+        var byCategory = HeuristicUseCaseScorer.normalizeEloByCategory(scores);
+
+        assertEquals(10.0, byCategory.get("code").get("code-4").score(), 0.01);
+        assertEquals(10.0, byCategory.get("text").get("text-4").score(), 0.01);
+        assertEquals(2.0, byCategory.get("code").get("code-0").score(), 0.01);
+    }
+
+    @Test
+    void boardsWithTooFewMatchesAreDropped() {
+        var byCategory = HeuristicUseCaseScorer.normalizeEloByCategory(List.of(
+                arena("a", "vision", 1400, 100),
+                arena("b", "vision", 1300, 100)));
+        assertTrue(byCategory.isEmpty());
+    }
+
+    @Test
+    void useCasePullsFromMappedCategoryWithTextFallback() {
+        Map<String, Map<String, HeuristicUseCaseScorer.ArenaSignal>> arena = Map.of(
+                "code", Map.of("m1", new HeuristicUseCaseScorer.ArenaSignal(9.0, 500)),
+                "text", Map.of("m1", new HeuristicUseCaseScorer.ArenaSignal(6.0, 500),
+                               "m2", new HeuristicUseCaseScorer.ArenaSignal(7.0, 500)));
+
+        // coding maps to the code board
+        assertEquals(9.0, HeuristicUseCaseScorer.arenaSignalFor(arena, "m1", "coding").score());
+        // writing maps to text
+        assertEquals(6.0, HeuristicUseCaseScorer.arenaSignalFor(arena, "m1", "writing").score());
+        // m2 has no code-board entry → falls back to its text rating
+        assertEquals(7.0, HeuristicUseCaseScorer.arenaSignalFor(arena, "m2", "coding").score());
+        // no data anywhere → null
+        assertNull(HeuristicUseCaseScorer.arenaSignalFor(arena, "m3", "coding"));
+    }
+
+    @Test
+    void lowVoteArenaRatingsMoveTheScoreLess() {
+        AiModel m = model("anthropic-claude-sonnet-4-6", 1_000_000, Map.of());
+        double baseline = HeuristicUseCaseScorer.score(m, "coding");
+
+        // A terrible arena rating (2.0) with many votes should drag the score
+        // down much further than the same rating with 20 votes.
+        double manyVotes = HeuristicUseCaseScorer.score(m, "coding", 2.0, 50_000);
+        double fewVotes  = HeuristicUseCaseScorer.score(m, "coding", 2.0, 20);
+
+        assertTrue(manyVotes < fewVotes);
+        assertTrue(fewVotes < baseline);
+        // unknown vote count keeps the legacy full 50/50 blend
+        assertEquals(HeuristicUseCaseScorer.score(m, "coding", 2.0),
+                HeuristicUseCaseScorer.score(m, "coding", 2.0, 0));
+    }
+
+    @Test
+    void arenaConfidenceTapersWithVotes() {
+        assertEquals(1.0, HeuristicUseCaseScorer.arenaConfidence(null));
+        assertEquals(1.0, HeuristicUseCaseScorer.arenaConfidence(0));
+        assertEquals(1.0, HeuristicUseCaseScorer.arenaConfidence(1_000_000));
+        double c50 = HeuristicUseCaseScorer.arenaConfidence(50);
+        double c500 = HeuristicUseCaseScorer.arenaConfidence(500);
+        assertTrue(c50 > 0 && c50 < c500 && c500 < 1.0);
     }
 
     @Test

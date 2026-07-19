@@ -110,6 +110,22 @@ class RecommendationEngineTest {
     }
 
     @Test
+    void budgetFilterUsesBlendedPriceNotInputPriceAlone() {
+        // Cheap input but ruinous output: blended 3:1 price is 0.5*0.75+40*0.25=10.375
+        AiModel outputTrap = model("output-trap", 0.5, 40.0);
+        AiModel honest = model("honest", 2.0, 6.0);   // blended 3.0
+        stub(List.of(outputTrap, honest), List.of(
+                score("output-trap", "coding", 9.0),
+                score("honest", "coding", 8.5)));
+
+        var result = engine.recommend("coding", 4, 5.0).block();
+
+        assertNotNull(result);
+        assertEquals("honest", result.topPick().getId());
+        assertFalse(result.reasoning().contains("budget was relaxed"));
+    }
+
+    @Test
     void expensiveOutputPriceCountsAgainstModel() {
         // Same input price; wildly different output price. Low tier → cost matters.
         AiModel cheapOutput = model("cheap-output", 1.0, 1.0);

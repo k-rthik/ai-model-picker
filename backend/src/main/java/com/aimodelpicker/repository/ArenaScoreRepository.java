@@ -23,6 +23,7 @@ public class ArenaScoreRepository {
         a.setEloScore(rs.getInt("elo_score"));
         a.setRankPosition(rs.getInt("rank_position"));
         a.setVotes(rs.getInt("votes"));
+        a.setCategory(rs.getString("category"));
         a.setScrapedAt(rs.getString("scraped_at"));
         return a;
     };
@@ -41,12 +42,13 @@ public class ArenaScoreRepository {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    /** Latest ELO per model (max scraped_at row wins). */
+    /** Latest ELO per model and leaderboard category (max scraped_at row wins). */
     public Flux<ArenaScore> findLatestPerModel() {
         return Mono.fromCallable(() -> jdbc.query("""
                         SELECT a.* FROM arena_scores a
-                        JOIN (SELECT model_id, MAX(scraped_at) AS ts FROM arena_scores GROUP BY model_id) l
-                          ON a.model_id = l.model_id AND a.scraped_at = l.ts
+                        JOIN (SELECT model_id, category, MAX(scraped_at) AS ts
+                              FROM arena_scores GROUP BY model_id, category) l
+                          ON a.model_id = l.model_id AND a.category = l.category AND a.scraped_at = l.ts
                         """, ROW_MAPPER))
                 .flatMapMany(Flux::fromIterable)
                 .subscribeOn(Schedulers.boundedElastic());
@@ -54,10 +56,10 @@ public class ArenaScoreRepository {
 
     public Mono<Integer> insert(ArenaScore score) {
         return Mono.fromCallable(() -> jdbc.update(
-                        "INSERT INTO arena_scores (model_id, model_name_on_leaderboard, elo_score, rank_position, votes, scraped_at) VALUES (?, ?, ?, ?, ?, ?)",
+                        "INSERT INTO arena_scores (model_id, model_name_on_leaderboard, elo_score, rank_position, votes, category, scraped_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
                         score.getModelId(), score.getModelNameOnLeaderboard(),
                         score.getEloScore(), score.getRankPosition(),
-                        score.getVotes(), score.getScrapedAt()))
+                        score.getVotes(), score.getCategory(), score.getScrapedAt()))
                 .subscribeOn(Schedulers.boundedElastic());
     }
 }

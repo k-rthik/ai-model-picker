@@ -48,7 +48,7 @@ public class AdminController {
         return ingestionLogRepo.findRecent(50);
     }
 
-    // ── Benchmark scraping (unchanged) ────────────────────────────────────────
+    // ── Arena scraping & scoring ──────────────────────────────────────────────
 
     @PostMapping("/scrape")
     public Mono<String> triggerScrape() {
@@ -58,8 +58,8 @@ public class AdminController {
     @PostMapping("/recompute")
     public Mono<String> triggerRecompute() {
         return heuristicScorer.recomputeAll()
-                .flatMap(count -> scraperOrchestrator.recomputeUseCaseScores()
-                        .thenReturn("Use-case scores recomputed (" + count + " heuristic rows + benchmark overrides)"));
+                .map(count -> "Use-case scores recomputed (" + count
+                        + " rows; arena category boards blended where matched)");
     }
 
     @GetMapping("/scrape-logs")

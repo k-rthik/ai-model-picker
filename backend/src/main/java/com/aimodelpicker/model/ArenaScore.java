@@ -10,5 +10,6 @@ public class ArenaScore {
     private Integer eloScore;
     private Integer rankPosition;
     private Integer votes;
+    private String category;
     private String scrapedAt;
 }

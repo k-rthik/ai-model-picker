@@ -106,9 +106,11 @@ public class RecommendationEngine {
                 .filter(m -> !excludeChina || !CHINA_PROVIDERS.contains(m.getProviderId()))
                 .toList();
 
+        // Budget gate uses the same blended 3:1 price the ranking scores on —
+        // filtering on input price alone lets expensive-output models sneak past.
         List<AiModel> candidates = scored.stream()
                 .filter(m -> scoreMap.get(m.getId()) >= qualityThreshold)
-                .filter(m -> maxBudgetPer1M <= 0 || m.getInputPricePer1m() <= maxBudgetPer1M)
+                .filter(m -> maxBudgetPer1M <= 0 || blendedPricePer1m(m) <= maxBudgetPer1M)
                 .toList();
 
         boolean budgetRelaxed = false;
