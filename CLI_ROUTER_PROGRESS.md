@@ -80,7 +80,7 @@ The router is now wired into the existing Next.js app, not just the standalone p
 
 The original standalone-only integration checklist (route/page, API handlers, asset/API adaptation, decide on keeping the standalone server, run Next build/lint) is complete. What's left before this can be considered fully shipped:
 
-1. Manual/browser verification of the `cli-router` tab and `/cli-router` deep link (not yet done in a browser).
+1. ~~Manual/browser verification of the `cli-router` tab and `/cli-router` deep link.~~ Done — verified in Chrome against `next dev`: the tab loads and highlights correctly, `/cli-router` deep-links straight into it, `GET /api/cli-router/config` and `POST /api/cli-router/route` both return `200` with the expected balanced-tier fallback (no Jev key configured locally), and switching between Claude Code and Codex CLI correctly re-routes the model/command shown. The "pick a model directly" card correctly degrades to a fallback message when the Java backend on `:8080` isn't running — that's an environment gap in this session, not a bug in the panel.
 2. Decide whether to keep two parallel routing implementations (`cli-router/src/router.js` vs `frontend/app/lib/cli-router/core.ts`) long-term, or have one call the other / extract a shared package.
 3. No automated tests yet for the new Next API routes or `CliRouterPanel` itself — only the standalone `cli-router/` package has test coverage.
 
