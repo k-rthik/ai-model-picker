@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f4ee" />
+    <meta name="description" content="Choose the right model for your next Codex or Claude Code prompt, compare estimated token costs, and copy a command." />
+    <title>Jev Router — Choose before you run</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#prompt">Skip to prompt</a>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Jev Router home">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>jev<span class="brand-light"> / router</span></span>
+        </a>
+        <div class="header-actions">
+          <a href="#how-it-works">How it works <span aria-hidden="true">↗</span></a>
+          <span class="connection-status" id="connection-status"><span class="status-dot" aria-hidden="true"></span><span id="connection-label">Connecting locally</span></span>
+        </div>
+      </header>
+
+      <main>
+        <section class="intro" aria-labelledby="page-title">
+          <a class="parent-link" id="home-link" href="/" hidden><span aria-hidden="true">←</span> AI Model Picker</a>
+          <p class="eyebrow"><span></span> A little routing. A better starting point.</p>
+          <h1 id="page-title">The right model.<br /><span>Before you run.</span></h1>
+          <p class="intro-copy">Bring your next coding prompt. Get a model, a cost comparison,<br class="desktop-break" /> and a terminal command that’s ready when you are.</p>
+        </section>
+
+        <div class="workspace">
+          <section class="prompt-panel" aria-labelledby="prompt-panel-title">
+            <div class="panel-heading"><span class="step-label">01 / YOUR TASK</span><span class="small-label">You stay in control</span></div>
+            <form id="route-form" novalidate>
+              <h2 id="prompt-panel-title">What are you working on?</h2>
+              <label class="sr-only" for="prompt">Your coding prompt</label>
+              <div class="prompt-wrap">
+                <textarea id="prompt" name="prompt" rows="7" required placeholder="Describe your task, just as you would in the CLI.&#10;&#10;For example: Add a dark mode toggle and persist the preference across sessions." spellcheck="true" maxlength="100000"></textarea>
+                <div class="prompt-meta"><span>Be as specific as you like.</span><span id="prompt-length">0 characters</span></div>
+              </div>
+
+              <fieldset class="agent-fieldset">
+                <legend>Where will you run it?</legend>
+                <div class="agent-options">
+                  <label class="agent-option"><input type="radio" name="agent" value="codex" checked /><span><span class="agent-icon" aria-hidden="true">&gt;_</span>Codex CLI</span></label>
+                  <label class="agent-option"><input type="radio" name="agent" value="claude" /><span><span class="agent-icon claude-icon" aria-hidden="true">✳</span>Claude Code</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="priority-fieldset">
+                <legend>Is token cost a priority?</legend>
+                <p class="field-description">Tell the router what matters for this task.</p>
+                <div class="priority-options">
+                  <label class="priority-option"><input type="radio" name="costPriority" value="cost" /><span><strong>Cost first</strong><small>Keep spend down</small></span></label>
+                  <label class="priority-option"><input type="radio" name="costPriority" value="balanced" checked /><span><strong>Balance both</strong><small>Cost + capability</small></span></label>
+                  <label class="priority-option"><input type="radio" name="costPriority" value="quality" /><span><strong>Quality first</strong><small>Prioritize capability</small></span></label>
+                </div>
+              </fieldset>
+
+              <details class="advanced-settings">
+                <summary>Working directory &amp; estimate settings<span aria-hidden="true">+</span></summary>
+                <div class="advanced-content">
+                  <label for="cwd">Working directory on your machine</label>
+                  <input id="cwd" name="cwd" type="text" required autocomplete="off" spellcheck="false" placeholder="Loading local directory…" aria-describedby="cwd-help" />
+                  <p id="cwd-help" class="field-description">The absolute path where you’ll run the CLI command.</p>
+                  <label for="output-tokens">Assumed output tokens</label>
+                  <input id="output-tokens" name="outputTokens" type="number" min="0" max="1000000" step="1" value="2000" required />
+                  <p class="field-description">Include generated and reasoning tokens. Actual usage depends on the task and model.</p>
+                  <label class="checkbox-label" for="strict"><input id="strict" name="strict" type="checkbox" /><span>Strict routing <small>Stop instead of using a fallback if Jev cannot make a confident choice.</small></span></label>
+                </div>
+              </details>
+
+              <div id="form-error" class="form-error" role="alert" hidden></div>
+              <button class="route-button" id="route-button" type="submit" disabled><span id="route-button-label">Find my model</span><span id="route-button-icon" aria-hidden="true">↗</span></button>
+              <p class="privacy-note"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.5" stroke="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor"/></svg><span id="privacy-copy">Jev receives your prompt, agent name, and directory path.<br />Repository contents stay on your machine.</span></p>
+            </form>
+          </section>
+
+          <section class="result-panel" aria-labelledby="result-panel-title" aria-busy="false" id="result-panel">
+            <div class="panel-heading"><span class="step-label">02 / YOUR NEXT COMMAND</span><span class="small-label" id="result-state">Ready when you are</span></div>
+            <div id="empty-state" class="empty-state">
+              <div class="route-illustration" aria-hidden="true"><span class="route-node route-node-left">&gt;_</span><span class="route-line"></span><span class="route-node route-node-center">j</span><div class="route-branches"><span></span><span></span><span></span></div><div class="route-endpoints"><i></i><i></i><i></i></div></div>
+              <h2 id="result-panel-title">A clearer next command.</h2>
+              <p>Add your prompt and choose your priorities.<br />We’ll take it from there.</p>
+              <div class="empty-tiers" aria-label="Available routing tiers"><span>Quick</span><span>Balanced</span><span>Strong</span><span>Frontier</span></div>
+              <p class="empty-note">Nothing runs from this page.</p>
+            </div>
+
+            <div id="loading-state" class="loading-state" role="status" hidden><span class="loader" aria-hidden="true"></span><h2>Finding a good fit…</h2><p>Matching your prompt and priorities to a model.</p></div>
+
+            <div id="result-content" hidden>
+              <div class="selection-heading"><p class="overline">RECOMMENDED MODEL</p><span class="tier-badge" id="selected-tier"></span></div>
+              <h2 id="selected-model" tabindex="-1"></h2>
+              <p class="selected-meta"><span id="selected-agent"></span><span class="meta-divider" aria-hidden="true">/</span><span id="selected-effort"></span></p>
+              <div id="routing-note" class="routing-note"><span class="routing-icon" aria-hidden="true">↳</span><div><strong id="routing-source"></strong><p id="routing-reason"></p><p class="routing-confidence" id="routing-confidence" hidden></p></div></div>
+
+              <div class="command-heading"><h3>Ready for your terminal</h3><button type="button" class="copy-button" id="copy-command"><span aria-hidden="true">⧉</span> Copy command</button></div>
+              <div class="command-box"><span class="terminal-dollar" aria-hidden="true">$</span><pre><code id="native-command"></code></pre></div>
+              <p class="command-caption">Native CLI command. Review it, then paste it into your terminal.</p>
+              <details class="consent-command"><summary>Prefer a confirmation before running?<span aria-hidden="true">+</span></summary><p>This helper shows the selection and asks for your consent before starting the agent.</p><div class="command-box secondary-command"><span class="terminal-dollar" aria-hidden="true">$</span><pre><code id="run-command"></code></pre></div><button type="button" class="copy-button" id="copy-run-command"><span aria-hidden="true">⧉</span> Copy consent-based command</button></details>
+
+              <section class="cost-section" aria-labelledby="cost-title">
+                <div class="cost-heading"><h3 id="cost-title">What’s the token cost?</h3><span class="estimate-tag">API ESTIMATE</span></div>
+                <div class="cost-summary"><div><p>Selected model</p><strong id="selected-cost"></strong></div><div><p>Compared with balanced</p><strong id="cost-difference"></strong></div></div>
+                <p id="cost-basis" class="cost-basis"></p>
+                <div class="cost-table-wrap"><table class="cost-table"><caption class="sr-only">Estimated API token cost by model tier</caption><thead><tr><th scope="col">Tier / model</th><th scope="col">Input / output<br /><small>per 1M tokens</small></th><th scope="col">Estimate</th></tr></thead><tbody id="cost-rows"></tbody></table></div>
+                <p class="cost-disclaimer" id="cost-note"></p>
+                <p class="pricing-date" id="pricing-date"></p>
+              </section>
+            </div>
+          </section>
+        </div>
+
+        <section class="how-it-works" id="how-it-works" aria-labelledby="how-title">
+          <div class="how-intro"><p class="eyebrow">SMALL TOOL. CLEAR DECISIONS.</p><h2 id="how-title">A thoughtful pause<br />before the terminal.</h2></div>
+          <div class="how-item"><span>01</span><h3>Four tiers, one choice</h3><p>Jev makes a typed choice across quick, balanced, strong, and frontier, routing both model and reasoning effort.</p></div>
+          <div class="how-item"><span>02</span><h3>A confidence floor</h3><p>A choice needs at least 65% confidence and a 15-point probability margin. Otherwise, balanced is the fallback.</p></div>
+          <div class="how-item"><span>03</span><h3>Your terminal, your call</h3><p>Compare the estimate and copy your command. The optional CLI runner always asks before starting an agent.</p></div>
+        </section>
+      </main>
+      <footer class="site-footer"><span>jev / router</span><p>Prompt in. Perspective out.</p><span id="hosting-label">Runs locally <span aria-hidden="true">↗</span></span></footer>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>

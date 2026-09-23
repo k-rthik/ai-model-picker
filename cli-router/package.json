@@ -1,0 +1,15 @@
+{
+  "name": "jev-router",
+  "version": "0.1.0",
+  "description": "Confidence-gated model routing for Codex CLI and Claude Code",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=22" },
+  "bin": { "jev-router": "./src/cli.js" },
+  "scripts": {
+    "start": "node src/cli.js ui",
+    "route": "node src/cli.js",
+    "test": "node --test",
+    "check": "node --check src/cli.js && node --check src/router.js && node --check src/server.js && node --check public/app.js"
+  }
+}
