@@ -15,17 +15,19 @@ uncached, short-context API USD per 1M tokens.
 
 | Tier | Codex model | Effort | Claude Code model | Effort |
 | --- | --- | --- | --- | --- |
-| quick | `gpt-6-luna` | low | `claude-haiku-4-5` | omitted |
+| quick | `gpt-6-luna` | low | `claude-haiku-4-5-20251001` | omitted |
 | balanced | `gpt-6-sol` | medium | `claude-sonnet-5` | medium |
-| strong | `gpt-6-sol` | high | `claude-opus-5` | high |
+| strong | `gpt-6-sol` | high | `claude-opus-5-5` | high |
 | frontier | `gpt-6-astra` | xhigh | `claude-fable-5-1` | max |
 
-The Claude rows were corrected on 2026-09-23. The previous entries named `claude-sonnet-4-6` and
-`claude-opus-4-7`, which are prior-generation IDs, and the Haiku row carried a date suffix that
-the current ID does not use. Current first-party rates are $1/$5 for Haiku 4.5, $2/$10 for
-Sonnet 5, $5/$25 for Opus 5, and $10/$50 for Fable 5.1. Codex rows were left as previously
-verified. Claude execution still clears `CLAUDE_CODE_EFFORT_LEVEL` so an inherited environment
-setting cannot override the selected effort.
+The Claude rows were corrected on 2026-09-23, then corrected again on 2026-09-25: the Haiku and
+Opus IDs (`claude-haiku-4-5`, `claude-opus-5`) were wrong against the authoritative current IDs —
+Haiku 4.5 keeps its date suffix (`claude-haiku-4-5-20251001`) and Opus 5.5's ID is
+`claude-opus-5-5`, not `claude-opus-5`. Sonnet 5 (`claude-sonnet-5`) and Fable 5.1
+(`claude-fable-5-1`) were already correct. Current first-party rates are $1/$5 for Haiku 4.5,
+$2/$10 for Sonnet 5, $5/$25 for Opus 5.5, and $10/$50 for Fable 5.1. Codex rows were left as
+previously verified. Claude execution still clears `CLAUDE_CODE_EFFORT_LEVEL` so an inherited
+environment setting cannot override the selected effort.
 
 ## In the Next app
 

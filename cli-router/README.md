@@ -2,6 +2,8 @@
 
 A local CLI and browser UI that route a prompt to Codex CLI or Claude Code. Requires Node.js 22+ and whichever native agent you want to run. No package dependencies or build step.
 
+The same routing is also available as the **CLI Router** tab in this repository's Next app, which adds a second answer picking from every model the site tracks. See [`../CLI_ROUTER_PROGRESS.md`](../CLI_ROUTER_PROGRESS.md). This package stays the way to launch an agent, since a website cannot and should not run commands on your machine.
+
 ## Start
 
 ```sh
@@ -64,13 +66,13 @@ The UI binds only to 127.0.0.1, checks host/origin, uses a per-process CSRF toke
 | Tier | Codex | Effort | Claude Code | Effort |
 | --- | --- | --- | --- | --- |
 | quick | gpt-6-luna | low | claude-haiku-4-5-20251001 | unsupported; omitted |
-| balanced | gpt-6-sol | medium | claude-sonnet-4-6 | medium |
-| strong | gpt-6-sol | high | claude-opus-4-7 | high |
-| frontier | gpt-6-astra | xhigh | claude-opus-4-7 | max |
+| balanced | gpt-6-sol | medium | claude-sonnet-5 | medium |
+| strong | gpt-6-sol | high | claude-opus-5-5 | high |
+| frontier | gpt-6-astra | xhigh | claude-fable-5-1 | max |
 
-Claude defaults use explicit model IDs compatible with the locally verified Claude Code 2.1.153, rather than requiring an upgrade. Haiku does not support effort. The generated Claude command unsets `CLAUDE_CODE_EFFORT_LEVEL`, which would otherwise override the selected effort. Account/provider access to individual models must still be available.
+Claude defaults use current first-party model IDs; Haiku's carries a date suffix, the others do not. Haiku does not support effort. The generated Claude command unsets `CLAUDE_CODE_EFFORT_LEVEL`, which would otherwise override the selected effort. Account/provider access to individual models must still be available.
 
-Prices are an explicit **2026-09-23** snapshot of standard, uncached, short-context API USD per million tokens in [src/catalog.js](src/catalog.js), sourced from [OpenAI pricing](https://developers.openai.com/api/docs/pricing) and [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing). Edit that file to update model mappings/rates as your available models change.
+Tiers, model IDs, effort, and prices live in [`../frontend/app/lib/cli-router/catalog.json`](../frontend/app/lib/cli-router/catalog.json), which [src/catalog.js](src/catalog.js) imports so this package and the Next app cannot drift apart. Edit that JSON file to change model mappings or rates. Prices are an explicit **2026-09-23** snapshot of standard, uncached, short-context API USD per million tokens, sourced from [OpenAI pricing](https://developers.openai.com/api/docs/pricing) and [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing).
 
 The estimate uses prompt UTF-8 bytes / 4 as a rough input-token count, plus an editable output/reasoning-token assumption (default 2,000), held constant across tiers. It shows signed cost differences relative to balanced. Identical model rates produce identical estimates even when effort differs: higher effort can consume more tokens, but has no invented cost multiplier. These are comparisons, **not full task quotes or subscription bills**. Repository context, repeated tool calls, extra turns, cache effects, long-context uplifts, and Jev routing fees are excluded.
 
